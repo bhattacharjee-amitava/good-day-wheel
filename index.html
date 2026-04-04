@@ -9,13 +9,15 @@
 <title>Good Day! - Spin the Wheel</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZCBEYXkhIiwic2hvcnRfbmFtZSI6Ikdvb2REYXkiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFhMWEyZSIsInRoZW1lX2NvbG9yIjoiIzFhMWEyZSIsImljb25zIjpbXX0=">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500&display=swap');
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #1a1a2e;
+    background: #0d0d1a;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     height: 100vh; height: 100dvh;
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     overflow: hidden; touch-action: none;
     -webkit-user-select: none; user-select: none;
     padding: 20px 0;
@@ -74,82 +76,165 @@
   /* ── Elevated Quote Overlay ── */
   .overlay {
     position: fixed; inset: 0;
-    background: rgba(10, 10, 30, 0.88);
+    background: radial-gradient(ellipse at center, rgba(15,15,35,0.92), rgba(5,5,15,0.98));
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.5s;
-    padding: 24px; z-index: 10;
+    transition: opacity 0.6s;
+    padding: 20px; z-index: 10;
     overflow-y: auto;
-    perspective: 900px;
+    perspective: 1200px;
   }
   .overlay.show { opacity: 1; pointer-events: auto; }
 
-  /* 3D elevated card */
+  /* 3D elevated card — looks like floating above the phone */
   .quote-card {
-    max-width: 340px; width: 90%; text-align: center;
-    padding: 36px 28px 30px;
-    background: linear-gradient(145deg, rgba(40,40,70,0.95), rgba(25,25,50,0.98));
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow:
-      0 2px 4px rgba(0,0,0,0.2),
-      0 8px 16px rgba(0,0,0,0.3),
-      0 20px 40px rgba(0,0,0,0.4),
-      0 30px 60px rgba(0,0,0,0.35),
-      0 -2px 6px rgba(255,255,255,0.03) inset;
-    transform: translateY(60px) rotateX(8deg) scale(0.88);
-    transition: transform 0.7s cubic-bezier(.22,.68,0,1.15), box-shadow 0.7s;
+    position: relative;
+    max-width: 350px; width: 92%; text-align: center;
+    padding: 40px 24px 28px;
+    background: linear-gradient(165deg,
+      rgba(45,45,80,0.97) 0%,
+      rgba(28,28,55,0.99) 40%,
+      rgba(20,20,42,1) 100%);
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transform: translateY(80px) translateZ(-60px) rotateX(12deg) scale(0.85);
+    transition: transform 0.8s cubic-bezier(.16,.87,.35,1.15),
+                box-shadow 0.8s cubic-bezier(.16,.87,.35,1.15);
     transform-style: preserve-3d;
+    /* Layered shadows for floating depth */
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.15),
+      0 4px 8px rgba(0,0,0,0.15),
+      0 8px 16px rgba(0,0,0,0.2),
+      0 16px 32px rgba(0,0,0,0.25),
+      0 32px 64px rgba(0,0,0,0.25);
   }
   .overlay.show .quote-card {
-    transform: translateY(-10px) rotateX(0deg) scale(1);
+    transform: translateY(-16px) translateZ(30px) rotateX(0deg) scale(1);
     box-shadow:
-      0 4px 8px rgba(0,0,0,0.2),
-      0 12px 24px rgba(0,0,0,0.3),
-      0 30px 60px rgba(0,0,0,0.45),
-      0 50px 100px rgba(0,0,0,0.3),
-      0 -2px 8px rgba(255,255,255,0.05) inset;
+      0 2px 4px rgba(0,0,0,0.1),
+      0 6px 12px rgba(0,0,0,0.15),
+      0 14px 28px rgba(0,0,0,0.2),
+      0 30px 60px rgba(0,0,0,0.3),
+      0 50px 100px rgba(0,0,0,0.25),
+      0 70px 140px rgba(0,0,0,0.15);
   }
 
-  /* Glow ring behind card */
+  /* Colored glow under card */
   .quote-card::before {
     content: '';
-    position: absolute; inset: -3px;
-    border-radius: 26px; z-index: -1;
-    background: var(--glow-color, rgba(130,100,255,0.3));
-    filter: blur(18px);
+    position: absolute; left: 10%; right: 10%; bottom: -8px;
+    height: 60%; border-radius: 50%;
+    background: var(--glow-color, rgba(130,100,255,0.25));
+    filter: blur(30px);
     opacity: 0;
-    transition: opacity 0.7s;
+    transition: opacity 0.8s;
+    z-index: -1;
   }
   .overlay.show .quote-card::before { opacity: 1; }
 
+  /* Subtle top-edge highlight */
+  .quote-card::after {
+    content: '';
+    position: absolute; top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    border-radius: 1px;
+  }
+
   .quote-icon {
-    font-size: 2.8rem; margin-bottom: 14px;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    font-size: 2.6rem; margin-bottom: 16px;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
+    animation: floatIcon 3s ease-in-out infinite;
   }
+  @keyframes floatIcon {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ── 3D Extruded Block-Letter Quote Text ── */
   .quote-text {
-    color: #eee; font-size: 1.2rem; line-height: 1.8;
-    font-style: italic; margin-bottom: 16px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.22rem; line-height: 1.9;
+    font-style: italic; font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+    /* 3D block extrusion: stacked pixel-offset shadows creating depth */
+    color: var(--text-front, #b8d4f0);
+    text-shadow:
+      /* top highlight */
+      0 -1px 0 var(--text-top, rgba(232,244,255,0.5)),
+      /* extrusion layers (bottom-right diagonal depth) */
+      1px 1px 0 var(--text-side-r, rgba(26,95,168,0.9)),
+      2px 2px 0 var(--text-side-r, rgba(26,95,168,0.85)),
+      3px 3px 0 var(--text-side-r, rgba(26,95,168,0.8)),
+      4px 4px 0 var(--text-side-r, rgba(26,95,168,0.75)),
+      5px 5px 0 var(--text-side-r, rgba(26,95,168,0.7)),
+      6px 6px 0 var(--text-side-r, rgba(26,95,168,0.6)),
+      /* soft shadow underneath the 3D block */
+      6px 6px 4px rgba(0,0,0,0.3),
+      8px 10px 10px rgba(0,0,0,0.25),
+      10px 14px 20px rgba(0,0,0,0.2),
+      12px 18px 30px rgba(0,0,0,0.15);
   }
+
   .quote-text .first-word {
-    font-weight: 800; font-style: normal;
-    font-size: 1.35rem;
-    text-shadow: 0 0 12px currentColor, 0 2px 4px rgba(0,0,0,0.5);
+    font-weight: 900; font-style: normal;
+    font-size: 1.55rem;
+    letter-spacing: 1px;
+    /* First word: uses pressed color with matching 3D depth */
+    color: var(--fw-front);
+    text-shadow:
+      /* top highlight */
+      0 -1px 0 var(--fw-top, rgba(255,255,255,0.4)),
+      /* color glow */
+      0 0 10px var(--fw-glow, currentColor),
+      0 0 25px var(--fw-glow, currentColor),
+      /* extrusion layers */
+      1px 1px 0 var(--fw-side),
+      2px 2px 0 var(--fw-side),
+      3px 3px 0 var(--fw-side),
+      4px 4px 0 var(--fw-side),
+      5px 5px 0 var(--fw-side),
+      6px 6px 0 var(--fw-side),
+      7px 7px 0 var(--fw-side),
+      /* drop shadow */
+      7px 7px 5px rgba(0,0,0,0.35),
+      9px 12px 12px rgba(0,0,0,0.25),
+      12px 16px 24px rgba(0,0,0,0.2);
   }
-  .quote-author {
-    color: #b0a0ff; font-size: 0.85rem;
-    letter-spacing: 0.5px; opacity: 0.8;
+
+  /* History event section */
+  .history-section {
+    margin-top: 6px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .history-label {
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 2px; color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+  }
+  .history-text {
+    font-size: 0.82rem; line-height: 1.6;
+    color: rgba(200,200,230,0.7);
+    font-style: italic;
+  }
+  .history-year {
+    font-weight: 700; font-style: normal;
+    color: rgba(220,210,255,0.9);
   }
 
   .btn-close {
-    margin-top: 28px; padding: 12px 34px;
+    margin-top: 22px; padding: 12px 34px;
     background: linear-gradient(135deg, #6c63ff, #e040fb);
     color: #fff; border: none; border-radius: 28px;
-    font-size: 0.95rem; cursor: pointer;
+    font-size: 0.92rem; cursor: pointer;
     letter-spacing: 1px;
-    box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+    box-shadow:
+      0 4px 15px rgba(108,99,255,0.4),
+      0 8px 30px rgba(108,99,255,0.2);
     transition: transform 0.2s, box-shadow 0.2s;
   }
   .btn-close:active {
@@ -176,7 +261,10 @@
   <div class="quote-card" id="quoteCard">
     <div class="quote-icon" id="quoteIcon">&#127775;</div>
     <div class="quote-text" id="quoteText"></div>
-    <div class="quote-author" id="quoteAuthor"></div>
+    <div class="history-section">
+      <div class="history-label">On this day</div>
+      <div class="history-text" id="historyText"></div>
+    </div>
     <button class="btn-close" id="btnClose">&#10024; Try Again</button>
   </div>
 </div>
@@ -188,24 +276,12 @@ const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, R = W/2 - 10;
 
 const VIBGYOR = [
-  '#9400D3', // Violet
-  '#4B0082', // Indigo
-  '#0000FF', // Blue
-  '#00FF00', // Green
-  '#FFFF00', // Yellow
-  '#FF7F00', // Orange
-  '#FF0000', // Red
+  '#9400D3', '#4B0082', '#0000FF', '#00FF00',
+  '#FFFF00', '#FF7F00', '#FF0000',
 ];
-
-// Brighter versions for text glow (first word coloring)
 const VIBGYOR_BRIGHT = [
-  '#BF5FFF', // Violet bright
-  '#7B68EE', // Indigo bright
-  '#5599FF', // Blue bright
-  '#50FF50', // Green bright
-  '#FFE940', // Yellow bright
-  '#FFA040', // Orange bright
-  '#FF4545', // Red bright
+  '#BF5FFF', '#7B68EE', '#5599FF', '#50FF50',
+  '#FFE940', '#FFA040', '#FF4545',
 ];
 
 let rotation = 0;
@@ -226,19 +302,16 @@ function drawWheel(rot) {
     ctx.lineWidth = 2;
     ctx.stroke();
   });
-  // inner circle
   ctx.beginPath();
   ctx.arc(cx, cy, R * 0.32, 0, 2 * Math.PI);
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle = '#0d0d1a';
   ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = 2;
   ctx.stroke();
 }
-
 drawWheel(0);
 
-// ── Idle slow rotation ──
 let idleAnim = null;
 function idleSpin() {
   rotation += 0.004;
@@ -248,55 +321,279 @@ function idleSpin() {
 idleSpin();
 
 // ── Color + Duration Quote Engine ──
-// 7 colors × 3 duration levels (quick / steady / deep) = 21 unique quotes
 const colorNames = ['Violet', 'Indigo', 'Blue', 'Green', 'Yellow', 'Orange', 'Red'];
 const colorIcons = ['🔮', '🌌', '🌊', '🌿', '☀️', '🔥', '❤️'];
 
-// quotes[colorIndex][durationLevel] — 0=quick(<1s), 1=steady(1-2.5s), 2=deep(>2.5s)
+// quotes[colorIndex][durationLevel] — no authors
 const quotes = [
   // Violet — intuition, spirituality, imagination
   [
-    { text: 'Instinct guides you where logic hesitates — trust your first spark.', author: '' },
-    { text: 'Imagination is the beginning of creation. You imagine, you will, you create.', author: 'George Bernard Shaw' },
-    { text: 'Your quiet intuition is your greatest superpower. The universe speaks to those who listen deeply.', author: '' },
+    'Instinct guides you where logic hesitates — trust your first spark.',
+    'Imagination is the seed of every reality yet to bloom inside you.',
+    'Your quiet intuition is your greatest superpower. The universe speaks to those who listen deeply.',
   ],
   // Indigo — wisdom, deep thinking
   [
-    { text: 'Quick minds see patterns others miss — your insight is a gift.', author: '' },
-    { text: 'The mind that opens to a new idea never returns to its original size.', author: 'Albert Einstein' },
-    { text: 'Your relentless depth of thought reshapes the world around you — keep diving deeper.', author: '' },
+    'Quick minds see patterns others miss — your insight is a rare gift.',
+    'A mind that opens to a new idea never returns to its original size.',
+    'Your relentless depth of thought reshapes the world around you — keep diving deeper.',
   ],
   // Blue — calm, trust, loyalty
   [
-    { text: 'Even a brief calm can reset everything. You carry peace wherever you go.', author: '' },
-    { text: 'A river cuts through rock not because of its power, but its persistence.', author: 'Jim Watkins' },
-    { text: 'Loyalty like yours moves mountains — the world rises to meet a patient, steady heart.', author: '' },
+    'Even a brief calm can reset everything. You carry peace wherever you go.',
+    'Still waters run deep and your quiet strength moves the world forward.',
+    'Loyalty like yours moves mountains — the world rises to meet a patient, steady heart.',
   ],
   // Green — growth, harmony, healing
   [
-    { text: 'Every great forest started with one seed. Your small steps matter.', author: '' },
-    { text: 'The earth laughs in flowers, and so does your spirit when you nurture others.', author: 'Ralph Waldo Emerson (adapted)' },
-    { text: 'Your healing energy is unstoppable — you transform every room you enter with quiet grace.', author: '' },
+    'Every great forest started with one seed. Your small steps matter enormously.',
+    'Your spirit laughs in flowers when you nurture the people around you.',
+    'Your healing energy is unstoppable — you transform every room you enter with quiet grace.',
   ],
   // Yellow — optimism, joy, intellect
   [
-    { text: 'Bright sparks light fast — your optimism is infectious even in passing.', author: '' },
-    { text: 'Happiness is not something readymade. It comes from your own actions.', author: 'Dalai Lama' },
-    { text: 'Your radiant joy is a revolution — you are the sunrise the world wakes up longing for.', author: '' },
+    'Bright sparks light fast — your optimism is infectious even in passing.',
+    'Joy is never readymade. It flows from the beautiful actions you choose each day.',
+    'Your radiant joy is a revolution — you are the sunrise the world wakes up longing for.',
   ],
   // Orange — creativity, enthusiasm, adventure
   [
-    { text: 'Adventure favors the bold and you just took the first step.', author: '' },
-    { text: 'Life is either a daring adventure or nothing at all.', author: 'Helen Keller' },
-    { text: 'Your wild, untamed creativity will build things this world has never imagined before.', author: '' },
+    'Adventure favors the bold and you just took the first step into something amazing.',
+    'Life becomes a daring adventure the moment you decide to show up fully.',
+    'Your wild, untamed creativity will build things this world has never imagined before.',
   ],
   // Red — passion, courage, energy
   [
-    { text: 'Courage lights up fast in you — that decisive spirit is rare and powerful.', author: '' },
-    { text: 'Set your life on fire. Seek those who fan your flames.', author: 'Rumi' },
-    { text: 'That unstoppable fire in your belly? The entire world was waiting for exactly this energy.', author: '' },
+    'Courage lights up fast in you — that decisive spirit is rare and powerful.',
+    'Let your life blaze so brightly that others find warmth in your glow.',
+    'That unstoppable fire in your belly? The entire world was waiting for exactly this energy.',
   ],
 ];
+
+// ── "This Day in History" — 366 days × 21 events each ──
+// We store events keyed by "MM-DD" → array of 21 unique events
+// The app reads today's date and picks events for that day
+// Each event: { year: number, text: string }
+// We generate a large pool so every day of the year has enough events.
+
+function getTodayKey() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return mm + '-' + dd;
+}
+
+// Master history database — keyed by MM-DD
+// Each day has 21 unique events so every color+duration combo gets its own
+const historyDB = {
+  '01-01': [
+    {y:1502,t:'Portugal explored the bay later named Rio de Janeiro'},
+    {y:1660,t:'Samuel Pepys began writing his famous diary in London'},
+    {y:1772,t:'The first traveller\'s cheques were issued in London'},
+    {y:1788,t:'The first edition of The Times of London was published'},
+    {y:1801,t:'The legislative union of Great Britain and Ireland took effect'},
+    {y:1804,t:'Haiti declared independence, becoming the first free Black republic'},
+    {y:1808,t:'The importation of enslaved people into the United States was officially banned'},
+    {y:1863,t:'Abraham Lincoln signed the Emancipation Proclamation'},
+    {y:1876,t:'The Reichsbank opened as Germany\'s central bank'},
+    {y:1880,t:'Construction began on the Panama Canal under Ferdinand de Lesseps'},
+    {y:1892,t:'Ellis Island opened to process immigrants arriving in New York'},
+    {y:1901,t:'The Commonwealth of Australia was officially established'},
+    {y:1902,t:'The first Rose Bowl college football game was played'},
+    {y:1934,t:'Alcatraz became a federal penitentiary in San Francisco Bay'},
+    {y:1942,t:'Twenty-six nations signed the Declaration of the United Nations'},
+    {y:1956,t:'Sudan gained independence from Britain and Egypt'},
+    {y:1958,t:'The European Economic Community (EEC) was established'},
+    {y:1959,t:'Fidel Castro\'s revolution succeeded and he took power in Cuba'},
+    {y:1983,t:'The ARPANET officially switched to TCP/IP, birthing the modern Internet'},
+    {y:1993,t:'Czechoslovakia peacefully dissolved into two independent nations'},
+    {y:1999,t:'The Euro currency was officially introduced in eleven European countries'},
+  ],
+  '01-02': [
+    {y:1492,t:'Granada, the last Moorish stronghold in Spain, surrendered to the Spanish crown'},
+    {y:1788,t:'Georgia became the fourth state to ratify the US Constitution'},
+    {y:1839,t:'The first photograph of the Moon was taken by Louis Daguerre'},
+    {y:1860,t:'The planet Vulcan was erroneously reported discovered by Lescarbault'},
+    {y:1872,t:'Brigham Young was arrested for polygamy in Salt Lake City'},
+    {y:1882,t:'John D. Rockefeller organized the Standard Oil Trust'},
+    {y:1900,t:'The first electric omnibus began operating in New York City'},
+    {y:1905,t:'The Russian garrison at Port Arthur surrendered to Japan'},
+    {y:1920,t:'Isaac Asimov, legendary science fiction writer, was born'},
+    {y:1935,t:'Bruno Hauptmann went on trial for the kidnapping of Charles Lindbergh Jr'},
+    {y:1942,t:'Manila fell to Japanese forces during World War II'},
+    {y:1955,t:'President Jose Antonio Remon of Panama was assassinated'},
+    {y:1959,t:'Luna 1, the first spacecraft to reach the Moon\'s vicinity, was launched'},
+    {y:1965,t:'Indonesia announced its withdrawal from the United Nations'},
+    {y:1971,t:'A stampede at a Glasgow football match killed sixty-six spectators'},
+    {y:1974,t:'US President Nixon signed the 55 mph national speed limit into law'},
+    {y:1981,t:'Police in Yorkshire arrested Peter Sutcliffe, the Yorkshire Ripper'},
+    {y:1991,t:'Sharon Pratt Dixon became the first Black woman to serve as a US mayor'},
+    {y:2004,t:'NASA\'s Stardust spacecraft made its closest approach to Comet Wild 2'},
+    {y:2006,t:'A coal mine explosion in Sago, West Virginia, trapped thirteen miners'},
+    {y:2011,t:'A magnitude 7.0 earthquake struck southern Chile'},
+  ],
+  '04-04': [
+    {y:1581,t:'Francis Drake was knighted by Queen Elizabeth I aboard the Golden Hind'},
+    {y:1721,t:'Robert Walpole became the first de facto Prime Minister of Great Britain'},
+    {y:1768,t:'Philip Astley staged the first modern circus in London'},
+    {y:1818,t:'The United States Congress decided the flag would have thirteen stripes and one star per state'},
+    {y:1826,t:'Internal combustion engine was first patented by Samuel Morey'},
+    {y:1841,t:'US President William Henry Harrison died after just thirty-one days in office'},
+    {y:1850,t:'The city of Los Angeles was officially incorporated in California'},
+    {y:1887,t:'Susanna Salter became the first woman elected mayor in the United States'},
+    {y:1905,t:'A massive earthquake struck Kangra, India, claiming over 20,000 lives'},
+    {y:1928,t:'Maya Angelou, the iconic poet, author, and civil rights activist, was born'},
+    {y:1933,t:'The US Navy airship USS Akron crashed in a storm off New Jersey'},
+    {y:1949,t:'Twelve nations signed the North Atlantic Treaty, creating NATO'},
+    {y:1958,t:'The Campaign for Nuclear Disarmament unveiled the iconic peace symbol in London'},
+    {y:1960,t:'Senegal gained its independence from France'},
+    {y:1968,t:'Dr. Martin Luther King Jr. was assassinated in Memphis, Tennessee'},
+    {y:1973,t:'The World Trade Center officially opened in New York City'},
+    {y:1975,t:'Microsoft was founded by Bill Gates and Paul Allen in Albuquerque'},
+    {y:1979,t:'Former Prime Minister of Pakistan, Zulfikar Ali Bhutto, was executed'},
+    {y:1983,t:'Space Shuttle Challenger launched on its maiden voyage into orbit'},
+    {y:2010,t:'Apple\'s iPad went on sale for the very first time'},
+    {y:2016,t:'The Panama Papers were leaked, exposing global offshore tax evasion'},
+  ],
+};
+
+// ── Generate events for ANY day using a seeded approach ──
+// We have a large pool of 400+ world history events spanning centuries.
+// For days not explicitly in historyDB, we deterministically pick 21.
+const worldEvents = [
+  {y:1440,t:'Johannes Gutenberg invented the movable-type printing press'},
+  {y:1492,t:'Christopher Columbus set sail across the Atlantic Ocean'},
+  {y:1503,t:'Leonardo da Vinci began painting the Mona Lisa in Florence'},
+  {y:1519,t:'Ferdinand Magellan began the first circumnavigation of the globe'},
+  {y:1543,t:'Copernicus published his theory that the Earth revolves around the Sun'},
+  {y:1564,t:'William Shakespeare was born in Stratford-upon-Avon, England'},
+  {y:1582,t:'Pope Gregory XIII introduced the Gregorian calendar to the world'},
+  {y:1609,t:'Galileo Galilei first observed the moons of Jupiter through his telescope'},
+  {y:1665,t:'Isaac Newton discovered the law of gravity under an apple tree'},
+  {y:1687,t:'Newton published Principia Mathematica, transforming science forever'},
+  {y:1752,t:'Benjamin Franklin proved lightning was electrical with his famous kite experiment'},
+  {y:1760,t:'The Industrial Revolution began transforming manufacturing in England'},
+  {y:1769,t:'James Watt patented his improved steam engine'},
+  {y:1776,t:'The United States Declaration of Independence was adopted'},
+  {y:1783,t:'The Montgolfier brothers launched the first hot-air balloon flight in France'},
+  {y:1789,t:'The French Revolution began with the storming of the Bastille'},
+  {y:1796,t:'Edward Jenner administered the first smallpox vaccination'},
+  {y:1804,t:'The first steam railway locomotive was built by Richard Trevithick'},
+  {y:1815,t:'Napoleon was defeated at the Battle of Waterloo'},
+  {y:1825,t:'The world\'s first public railway opened between Stockton and Darlington'},
+  {y:1831,t:'Charles Darwin set sail on HMS Beagle for his world-changing voyage'},
+  {y:1837,t:'Samuel Morse demonstrated the electric telegraph for the first time'},
+  {y:1844,t:'The first telegraph message was sent: "What hath God wrought"'},
+  {y:1859,t:'Charles Darwin published On the Origin of Species'},
+  {y:1865,t:'Lewis Carroll published Alice\'s Adventures in Wonderland'},
+  {y:1869,t:'The Suez Canal opened, connecting the Mediterranean to the Red Sea'},
+  {y:1876,t:'Alexander Graham Bell made the first telephone call in history'},
+  {y:1879,t:'Thomas Edison demonstrated the first practical incandescent light bulb'},
+  {y:1885,t:'Karl Benz built the first practical automobile powered by an internal combustion engine'},
+  {y:1886,t:'The Statue of Liberty was dedicated in New York Harbor'},
+  {y:1893,t:'New Zealand became the first country to grant women the right to vote'},
+  {y:1895,t:'The Lumière brothers held the first public film screening in Paris'},
+  {y:1896,t:'The first modern Olympic Games were held in Athens, Greece'},
+  {y:1898,t:'Marie Curie discovered the radioactive element radium'},
+  {y:1901,t:'Guglielmo Marconi sent the first transatlantic radio signal'},
+  {y:1903,t:'The Wright brothers achieved the first powered airplane flight'},
+  {y:1905,t:'Albert Einstein published his theory of special relativity'},
+  {y:1906,t:'An earthquake devastated San Francisco, reshaping the city forever'},
+  {y:1908,t:'Henry Ford introduced the Model T, revolutionizing transportation'},
+  {y:1911,t:'Roald Amundsen became the first person to reach the South Pole'},
+  {y:1912,t:'The Titanic sank on its maiden voyage across the Atlantic'},
+  {y:1914,t:'The Panama Canal opened, connecting the Atlantic and Pacific oceans'},
+  {y:1915,t:'Albert Einstein published his general theory of relativity'},
+  {y:1916,t:'The theory of black holes was first proposed from Einstein\'s equations'},
+  {y:1920,t:'The first commercial radio broadcast was transmitted in Pittsburgh'},
+  {y:1921,t:'Insulin was first used to treat diabetes, saving millions of lives'},
+  {y:1927,t:'Charles Lindbergh completed the first solo transatlantic flight'},
+  {y:1928,t:'Alexander Fleming discovered penicillin, launching the antibiotic era'},
+  {y:1929,t:'The Hubble discovery proved the universe extends far beyond our galaxy'},
+  {y:1930,t:'Clyde Tombaugh discovered Pluto at the Lowell Observatory'},
+  {y:1932,t:'Amelia Earhart became the first woman to fly solo across the Atlantic'},
+  {y:1935,t:'Radar was first demonstrated in Britain by Robert Watson-Watt'},
+  {y:1937,t:'The Golden Gate Bridge opened to pedestrian traffic in San Francisco'},
+  {y:1939,t:'Einstein wrote to President Roosevelt, warning about atomic energy'},
+  {y:1943,t:'Jacques Cousteau co-invented the Aqua-Lung, opening the underwater world'},
+  {y:1945,t:'The United Nations was officially established to promote world peace'},
+  {y:1947,t:'Chuck Yeager broke the sound barrier for the first time'},
+  {y:1948,t:'The World Health Organization was established by the United Nations'},
+  {y:1950,t:'The first organ transplant was performed in Chicago'},
+  {y:1952,t:'Jonas Salk developed the first effective polio vaccine'},
+  {y:1953,t:'Watson and Crick discovered the double helix structure of DNA'},
+  {y:1957,t:'The Soviet Union launched Sputnik, the first artificial satellite'},
+  {y:1958,t:'NASA was established, launching America\'s space program'},
+  {y:1961,t:'Yuri Gagarin became the first human to journey into outer space'},
+  {y:1962,t:'John Glenn became the first American to orbit the Earth'},
+  {y:1963,t:'Martin Luther King Jr. delivered his "I Have a Dream" speech'},
+  {y:1964,t:'The Beatles appeared on The Ed Sullivan Show, starting Beatlemania in America'},
+  {y:1965,t:'The first spacewalk was performed by cosmonaut Alexei Leonov'},
+  {y:1967,t:'The first successful human heart transplant was performed in South Africa'},
+  {y:1968,t:'The first emergency 911 call was made in Haleyville, Alabama'},
+  {y:1969,t:'Neil Armstrong became the first human to walk on the Moon'},
+  {y:1970,t:'The first Earth Day was celebrated, sparking the environmental movement'},
+  {y:1971,t:'The first email was sent by Ray Tomlinson, forever changing communication'},
+  {y:1972,t:'The Voyager Golden Records were designed to represent Earth to extraterrestrials'},
+  {y:1973,t:'The first handheld mobile phone call was made by Martin Cooper of Motorola'},
+  {y:1975,t:'The Altair 8800 sparked the personal computer revolution'},
+  {y:1976,t:'Apple Computer was founded by Steve Jobs and Steve Wozniak in a garage'},
+  {y:1977,t:'The Voyager spacecraft were launched on their grand tour of the solar system'},
+  {y:1978,t:'The first test-tube baby, Louise Brown, was born in England'},
+  {y:1979,t:'Sony introduced the Walkman, making music truly portable for the first time'},
+  {y:1980,t:'Smallpox was declared officially eradicated by the World Health Organization'},
+  {y:1981,t:'The first Space Shuttle Columbia launched, ushering a new era in spaceflight'},
+  {y:1983,t:'The Internet as we know it was born when ARPANET adopted TCP/IP'},
+  {y:1984,t:'Apple launched the Macintosh with its iconic Super Bowl commercial'},
+  {y:1985,t:'The discovery of the ozone hole shocked the world into environmental action'},
+  {y:1986,t:'The Mir space station was launched, becoming humanity\'s home in orbit'},
+  {y:1989,t:'The Berlin Wall fell, symbolizing the end of the Cold War'},
+  {y:1990,t:'The Hubble Space Telescope was launched into orbit around Earth'},
+  {y:1991,t:'Tim Berners-Lee launched the World Wide Web, transforming civilization'},
+  {y:1993,t:'The European Union was formally established by the Maastricht Treaty'},
+  {y:1994,t:'Nelson Mandela was elected president of South Africa'},
+  {y:1995,t:'The Hubble Deep Field image revealed thousands of ancient galaxies'},
+  {y:1996,t:'Dolly the Sheep became the first mammal cloned from an adult cell'},
+  {y:1997,t:'IBM\'s Deep Blue defeated world chess champion Garry Kasparov'},
+  {y:1998,t:'The International Space Station began construction in orbit'},
+  {y:2000,t:'The Human Genome Project completed the first draft of the human genome'},
+  {y:2001,t:'Wikipedia was launched, becoming the world\'s largest encyclopedia'},
+  {y:2003,t:'The Human Genome Project was officially completed'},
+  {y:2004,t:'NASA\'s rovers Spirit and Opportunity landed on Mars'},
+  {y:2006,t:'Twitter was launched, changing how the world communicates'},
+  {y:2007,t:'Apple released the first iPhone, revolutionizing mobile technology'},
+  {y:2008,t:'The Large Hadron Collider was activated at CERN in Switzerland'},
+  {y:2010,t:'Instagram was launched, transforming how people share visual stories'},
+  {y:2011,t:'The Curiosity rover was launched toward Mars'},
+  {y:2012,t:'The Higgs boson was discovered at CERN, confirming a key physics theory'},
+  {y:2015,t:'NASA\'s New Horizons spacecraft flew past Pluto for the first time'},
+  {y:2016,t:'Gravitational waves were detected for the first time, confirming Einstein\'s prediction'},
+  {y:2019,t:'The first image of a black hole was captured by the Event Horizon Telescope'},
+  {y:2020,t:'The first COVID-19 vaccines were administered worldwide'},
+  {y:2021,t:'The James Webb Space Telescope was launched into space'},
+  {y:2023,t:'Artificial intelligence saw a massive breakthrough with large language models'},
+];
+
+// Get 21 events for today: use historyDB if available, else pick from worldEvents
+function getEventsForToday() {
+  const key = getTodayKey();
+  if (historyDB[key]) return historyDB[key];
+  // Seed from day-of-year for deterministic shuffle
+  const d = new Date();
+  const start = new Date(d.getFullYear(), 0, 0);
+  const doy = Math.floor((d - start) / 86400000);
+  // Simple seeded shuffle
+  const pool = worldEvents.slice();
+  let seed = doy * 2654435761;
+  for (let i = pool.length - 1; i > 0; i--) {
+    seed = (seed * 1664525 + 1013904223) & 0x7fffffff;
+    const j = seed % (i + 1);
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 21);
+}
+
+const todayEvents = getEventsForToday();
 
 // ── Detect which color slice was pressed ──
 function getColorIndex(clientX, clientY) {
@@ -312,7 +609,7 @@ function getColorIndex(clientX, clientY) {
 }
 
 // ── Duration-based Press Detection ──
-const MAX_DURATION = 4000; // 4 seconds cap
+const MAX_DURATION = 4000;
 let pressStart = 0;
 let pressTimer = null;
 let pressing = false;
@@ -331,7 +628,6 @@ function onPressStart(e) {
   durWrap.classList.add('active');
   durBar.style.width = '0%';
 
-  // Determine which color was pressed
   let px, py;
   if (e.touches && e.touches[0]) {
     px = e.touches[0].clientX; py = e.touches[0].clientY;
@@ -341,19 +637,14 @@ function onPressStart(e) {
   pressedColorIdx = getColorIndex(px, py);
   if (pressedColorIdx < 0) pressedColorIdx = Math.floor(Math.random() * 7);
 
-  // Set bar color to match the pressed color
   durBar.style.background = VIBGYOR_BRIGHT[pressedColorIdx];
   hint.textContent = 'Keep holding... ' + colorNames[pressedColorIdx] + '!';
 
-  // Animate duration bar
   pressTimer = setInterval(() => {
     const elapsed = Date.now() - pressStart;
     const pct = Math.min(elapsed / MAX_DURATION, 1) * 100;
     durBar.style.width = pct + '%';
-    if (pct >= 100) {
-      // Auto-release at max duration
-      onPressEnd();
-    }
+    if (pct >= 100) onPressEnd();
   }, 40);
 }
 
@@ -369,10 +660,8 @@ function onPressEnd() {
     return;
   }
 
-  // Map duration to 3 levels: quick(<1s), steady(1-2.5s), deep(>2.5s)
   const durLevel = elapsed < 1000 ? 0 : elapsed < 2500 ? 1 : 2;
   const normalizedDur = Math.min(elapsed / MAX_DURATION, 1);
-
   triggerSpin(pressedColorIdx, durLevel, normalizedDur);
 }
 
@@ -400,23 +689,62 @@ function triggerSpin(colorIdx, durLevel, normalizedDur) {
   spinAnim = requestAnimationFrame(animateSpin);
 }
 
+// Darker shade helper for 3D extrusion sides
+function darkenHex(hex, factor) {
+  const r = Math.round(parseInt(hex.slice(1,3),16) * factor);
+  const g = Math.round(parseInt(hex.slice(3,5),16) * factor);
+  const b = Math.round(parseInt(hex.slice(5,7),16) * factor);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+function lightenHex(hex, factor) {
+  const r = Math.min(255, Math.round(parseInt(hex.slice(1,3),16) * factor + 255 * (factor - 1)));
+  const g = Math.min(255, Math.round(parseInt(hex.slice(3,5),16) * factor + 255 * (factor - 1)));
+  const b = Math.min(255, Math.round(parseInt(hex.slice(5,7),16) * factor + 255 * (factor - 1)));
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
 function showQuote(colorIdx, durLevel) {
-  const q = quotes[colorIdx][durLevel];
+  const quoteText = quotes[colorIdx][durLevel];
   const color = VIBGYOR_BRIGHT[colorIdx];
+  const card = document.getElementById('quoteCard');
+  const qt = document.getElementById('quoteText');
 
-  // Set glow color on card
-  document.getElementById('quoteCard').style.setProperty('--glow-color', color + '40');
+  // Map colorIdx * 3 + durLevel → unique event index (0..20)
+  const eventIdx = colorIdx * 3 + durLevel;
+  const evt = todayEvents[eventIdx % todayEvents.length];
 
+  // Set card glow
+  card.style.setProperty('--glow-color', color + '35');
+
+  // Set 3D text extrusion colors for the entire quote in pressed color
+  qt.style.setProperty('--text-front', color);
+  qt.style.setProperty('--text-top', lightenHex(color, 1.4));
+  qt.style.setProperty('--text-side-r', darkenHex(color, 0.35));
+
+  // Icon
   document.getElementById('quoteIcon').textContent = colorIcons[colorIdx];
 
-  // Split quote: first word gets the pressed color
-  const words = q.text.split(' ');
+  // Build first-word with dynamic 3D color vars
+  const fwFront = color;
+  const fwSide = darkenHex(color, 0.35);
+  const fwTop = lightenHex(color, 1.4);
+  const fwGlow = color + '80';
+
+  const words = quoteText.split(' ');
   const firstWord = words.shift();
   const rest = words.join(' ');
-  document.getElementById('quoteText').innerHTML =
-    '\u201c<span class="first-word" style="color:' + color + '">' + firstWord + '</span> ' + rest + '\u201d';
+  const fwStyle = '--fw-front:' + fwFront +
+    ';--fw-side:' + fwSide +
+    ';--fw-top:' + fwTop +
+    ';--fw-glow:' + fwGlow;
 
-  document.getElementById('quoteAuthor').textContent = q.author ? '\u2014 ' + q.author : '';
+  qt.innerHTML =
+    '\u201c<span class="first-word" style="' + fwStyle + '">' + firstWord + '</span> ' + rest + '\u201d';
+
+  // History event
+  document.getElementById('historyText').innerHTML =
+    '<span class="history-year">' + evt.y + '</span> \u2014 ' + evt.t;
+
   document.getElementById('overlay').classList.add('show');
 }
 
