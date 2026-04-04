@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Good Day! - Spin the Wheel</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZCBEYXkhIiwic2hvcnRfbmFtZSI6Ikdvb2REYXkiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFhMWEyZSIsInRoZW1lX2NvbG9yIjoiIzFhMWEyZSIsImljb25zIjpbXX0=">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100vh; height: 100dvh;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden; touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    padding: 20px 0;
+  }
+
+  .title {
+    color: #e0e0ff; font-size: 1.1rem; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 18px; opacity: 0.7;
+  }
+
+  .wheel-container {
+    position: relative;
+    --sz: min(70vw, 55vh, 300px);
+    width: var(--sz); height: var(--sz);
+    flex-shrink: 0;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+
+  canvas#wheel {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 25px rgba(130, 100, 255, 0.35));
+    transition: filter 0.3s;
+  }
+  .wheel-container:active canvas#wheel {
+    filter: drop-shadow(0 0 40px rgba(130, 100, 255, 0.7));
+  }
+
+  .center-text {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff; font-size: clamp(1rem, 4vw, 1.45rem); font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    pointer-events: none; white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  .hint {
+    color: #aaa; font-size: 0.82rem; margin-top: 20px;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+  /* Quote overlay */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(10, 10, 30, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s;
+    padding: 24px; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+
+  .quote-card {
+    max-width: 340px; text-align: center;
+    transform: translateY(30px) scale(0.95);
+    transition: transform 0.5s cubic-bezier(.22,.68,0,1.2);
+  }
+  .overlay.show .quote-card { transform: translateY(0) scale(1); }
+
+  .quote-icon { font-size: 2.4rem; margin-bottom: 10px; }
+  .quote-text {
+    color: #fff; font-size: 1.25rem; line-height: 1.7;
+    font-style: italic; margin-bottom: 18px;
+  }
+  .quote-author { color: #b0a0ff; font-size: 0.9rem; }
+
+  .btn-close {
+    margin-top: 30px; padding: 10px 30px;
+    background: linear-gradient(135deg, #6c63ff, #e040fb);
+    color: #fff; border: none; border-radius: 25px;
+    font-size: 0.95rem; cursor: pointer;
+    letter-spacing: 1px;
+  }
+
+  .force-bar-wrap {
+    width: 200px; height: 6px; background: #333;
+    border-radius: 3px; margin-top: 16px; overflow: hidden;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .force-bar-wrap.active { opacity: 1; }
+  .force-bar {
+    height: 100%; width: 0%; border-radius: 3px;
+    background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336);
+    transition: width 0.1s;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">&#10024; What Is YOUR Favorite Color? &#10024;</div>
+
+<div class="wheel-container" id="wheelContainer">
+  <canvas id="wheel" width="600" height="600"></canvas>
+  <div class="center-text">Good Day!</div>
+</div>
+
+<div class="hint" id="hint">Press &amp; hold any color on the wheel!</div>
+<div class="force-bar-wrap" id="forceWrap">
+  <div class="force-bar" id="forceBar"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="quote-card">
+    <div class="quote-icon" id="quoteIcon">&#127775;</div>
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+    <button class="btn-close" id="btnClose">&#10024; Try Again</button>
+  </div>
+</div>
+
+<script>
+// ── VIBGYOR Wheel Drawing ──
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, R = W/2 - 10;
+
+const VIBGYOR = [
+  '#9400D3', // Violet
+  '#4B0082', // Indigo
+  '#0000FF', // Blue
+  '#00FF00', // Green
+  '#FFFF00', // Yellow
+  '#FF7F00', // Orange
+  '#FF0000', // Red
+];
+
+let rotation = 0;
+
+function drawWheel(rot) {
+  ctx.clearRect(0, 0, W, H);
+  const sliceAngle = (2 * Math.PI) / VIBGYOR.length;
+  VIBGYOR.forEach((color, i) => {
+    const start = rot + i * sliceAngle;
+    const end = start + sliceAngle;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, start, end);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+  // inner circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.32, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+drawWheel(0);
+
+// ── Idle slow rotation ──
+let idleAnim = null;
+function idleSpin() {
+  rotation += 0.004;
+  drawWheel(rotation);
+  idleAnim = requestAnimationFrame(idleSpin);
+}
+idleSpin();
+
+// ── Color + Force Quote Engine ──
+// 7 colors × 3 force levels (gentle / moderate / strong) = 21 unique quotes
+const colorNames = ['Violet', 'Indigo', 'Blue', 'Green', 'Yellow', 'Orange', 'Red'];
+const colorIcons = ['🔮', '🌌', '🌊', '🌿', '☀️', '🔥', '❤️'];
+
+// quotes[colorIndex][forceLevel] — forceLevel: 0=gentle, 1=moderate, 2=strong
+const quotes = [
+  // Violet — intuition, spirituality, imagination
+  [
+    { text: 'Your quiet intuition is your greatest superpower. Trust the whisper within.', author: '' },
+    { text: 'Imagination is the beginning of creation. You imagine, you will, you create.', author: 'George Bernard Shaw' },
+    { text: 'You see what others overlook — your vision will light the way for many.', author: '' },
+  ],
+  // Indigo — wisdom, deep thinking
+  [
+    { text: 'Depth is a rare gift. The world needs thinkers who pause before they speak.', author: '' },
+    { text: 'The mind that opens to a new idea never returns to its original size.', author: 'Albert Einstein' },
+    { text: 'Your relentless curiosity is a force of nature — keep questioning everything.', author: '' },
+  ],
+  // Blue — calm, trust, loyalty
+  [
+    { text: 'Your calm presence is a shelter in the storm. Never underestimate that gift.', author: '' },
+    { text: 'A river cuts through rock not because of its power, but its persistence.', author: 'Jim Watkins' },
+    { text: 'Loyalty like yours moves mountains — the world rises to meet a steady heart.', author: '' },
+  ],
+  // Green — growth, harmony, healing
+  [
+    { text: 'Like a seed in silence, your growth happens in ways no one can see yet.', author: '' },
+    { text: 'The earth laughs in flowers, and so does your spirit when you nurture others.', author: 'Ralph Waldo Emerson (adapted)' },
+    { text: 'Your healing energy is unstoppable — you transform every room you enter.', author: '' },
+  ],
+  // Yellow — optimism, joy, intellect
+  [
+    { text: 'A gentle smile from you can change someone\'s entire day. Keep glowing softly.', author: '' },
+    { text: 'Happiness is not something readymade. It comes from your own actions.', author: 'Dalai Lama' },
+    { text: 'Your radiant joy is contagious — you are the sunshine the world wakes up for.', author: '' },
+  ],
+  // Orange — creativity, enthusiasm, adventure
+  [
+    { text: 'Your creative spark is quietly brilliant — even small ideas change the world.', author: '' },
+    { text: 'Life is either a daring adventure or nothing at all.', author: 'Helen Keller' },
+    { text: 'Your wild enthusiasm is a revolution — never let anyone dim that fire.', author: '' },
+  ],
+  // Red — passion, courage, energy
+  [
+    { text: 'Courage doesn\'t always roar. Sometimes it\'s the quiet voice saying: I\'ll try again tomorrow.', author: 'Mary Anne Radmacher' },
+    { text: 'Set your life on fire. Seek those who fan your flames.', author: 'Rumi' },
+    { text: 'That fire in your belly? The world was waiting for exactly that energy. Unleash it.', author: '' },
+  ],
+];
+
+// ── Detect which color slice was pressed ──
+function getColorIndex(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  // Position relative to canvas center (0..1 mapped to canvas coords)
+  const x = (clientX - rect.left) / rect.width * W - cx;
+  const y = (clientY - rect.top) / rect.height * H - cy;
+  const dist = Math.sqrt(x * x + y * y);
+  // If pressed inside the center circle, return -1
+  if (dist < R * 0.32) return -1;
+  // Angle from center, adjusted for current rotation
+  let angle = Math.atan2(y, x) - rotation;
+  const sliceAngle = (2 * Math.PI) / VIBGYOR.length;
+  // Normalize to 0..2PI
+  angle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  return Math.floor(angle / sliceAngle);
+}
+
+// ── Force Detection ──
+let pressStart = 0;
+let maxForce = 0;
+let pressTimer = null;
+let pressing = false;
+let spinAnim = null;
+let pressedColorIdx = 0;
+
+const container = document.getElementById('wheelContainer');
+const forceWrap = document.getElementById('forceWrap');
+const forceBar = document.getElementById('forceBar');
+const hint = document.getElementById('hint');
+
+function onPressStart(e) {
+  if (pressing) return;
+  pressing = true;
+  pressStart = Date.now();
+  maxForce = 0;
+  forceWrap.classList.add('active');
+  forceBar.style.width = '0%';
+
+  // Determine which color was pressed
+  let px, py;
+  if (e.touches && e.touches[0]) {
+    px = e.touches[0].clientX; py = e.touches[0].clientY;
+  } else {
+    px = e.clientX; py = e.clientY;
+  }
+  pressedColorIdx = getColorIndex(px, py);
+  if (pressedColorIdx < 0) pressedColorIdx = Math.floor(Math.random() * 7); // center press = random
+
+  hint.textContent = 'Keep holding... ' + colorNames[pressedColorIdx] + '!';
+
+  // Poll force via duration + touch force if available
+  pressTimer = setInterval(() => {
+    const elapsed = Date.now() - pressStart;
+    const durationForce = Math.min(elapsed / 3000, 1); // max 3s
+
+    // Check touch force API
+    let touchForce = 0;
+    if (e.touches && e.touches[0] && typeof e.touches[0].force === 'number' && e.touches[0].force > 0) {
+      touchForce = e.touches[0].force;
+    }
+
+    const combined = Math.min(Math.max(durationForce, touchForce), 1);
+    maxForce = Math.max(maxForce, combined);
+    forceBar.style.width = (maxForce * 100) + '%';
+  }, 50);
+}
+
+function onPressEnd() {
+  if (!pressing) return;
+  pressing = false;
+  clearInterval(pressTimer);
+  forceWrap.classList.remove('active');
+
+  const elapsed = Date.now() - pressStart;
+  if (elapsed < 150) {
+    hint.textContent = 'Press & hold any color on the wheel!';
+    return; // too short, ignore
+  }
+
+  const force = maxForce;
+  // Map force 0..1 to 3 levels: gentle(0), moderate(1), strong(2)
+  const forceLevel = force < 0.33 ? 0 : force < 0.66 ? 1 : 2;
+
+  // Spin the wheel fast then show quote
+  triggerSpin(pressedColorIdx, forceLevel, force);
+}
+
+function triggerSpin(colorIdx, forceLevel, force) {
+  hint.textContent = '';
+  cancelAnimationFrame(idleAnim);
+  if (spinAnim) cancelAnimationFrame(spinAnim);
+
+  const spinDuration = 1500 + force * 1500; // 1.5 - 3s
+  const totalRotation = 4 + force * 8; // 4-12 full rotations
+  const startRot = rotation;
+  const startTime = performance.now();
+
+  function animateSpin(now) {
+    const t = Math.min((now - startTime) / spinDuration, 1);
+    // ease-out cubic
+    const ease = 1 - Math.pow(1 - t, 3);
+    rotation = startRot + totalRotation * ease * Math.PI * 2;
+    drawWheel(rotation);
+    if (t < 1) {
+      spinAnim = requestAnimationFrame(animateSpin);
+    } else {
+      setTimeout(() => showQuote(colorIdx, forceLevel), 300);
+    }
+  }
+  spinAnim = requestAnimationFrame(animateSpin);
+}
+
+function showQuote(colorIdx, forceLevel) {
+  const q = quotes[colorIdx][forceLevel];
+  document.getElementById('quoteIcon').textContent = colorIcons[colorIdx];
+  document.getElementById('quoteText').textContent = '\u201c' + q.text + '\u201d';
+  document.getElementById('quoteAuthor').textContent = q.author ? '\u2014 ' + q.author : '';
+  document.getElementById('overlay').classList.add('show');
+}
+
+document.getElementById('btnClose').addEventListener('click', () => {
+  document.getElementById('overlay').classList.remove('show');
+  hint.textContent = 'Press & hold any color on the wheel!';
+  idleSpin();
+});
+
+// Touch events
+container.addEventListener('touchstart', onPressStart, { passive: true });
+container.addEventListener('touchend', onPressEnd);
+container.addEventListener('touchcancel', onPressEnd);
+
+// Mouse fallback
+container.addEventListener('mousedown', onPressStart);
+window.addEventListener('mouseup', onPressEnd);
+
+// ── Inline Service Worker for PWA ──
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+}
+</script>
+</body>
+</html>
