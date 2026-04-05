@@ -370,230 +370,49 @@ const quotes = [
   ],
 ];
 
-// ── "This Day in History" — 366 days × 21 events each ──
-// We store events keyed by "MM-DD" → array of 21 unique events
-// The app reads today's date and picks events for that day
-// Each event: { year: number, text: string }
-// We generate a large pool so every day of the year has enough events.
+// ── "On This Day" — Live from Wikipedia API ──
+// Fetches real, factually accurate events for today's date
+// API: https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/{MM}/{DD}
+// Falls back to a generic message if offline
 
-function getTodayKey() {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return mm + '-' + dd;
-}
+let todayEvents = []; // filled async on load
 
-// Master history database — keyed by MM-DD
-// Each day has 21 unique events so every color+duration combo gets its own
-const historyDB = {
-  '01-01': [
-    {y:1502,t:'Portugal explored the bay later named Rio de Janeiro'},
-    {y:1660,t:'Samuel Pepys began writing his famous diary in London'},
-    {y:1772,t:'The first traveller\'s cheques were issued in London'},
-    {y:1788,t:'The first edition of The Times of London was published'},
-    {y:1801,t:'The legislative union of Great Britain and Ireland took effect'},
-    {y:1804,t:'Haiti declared independence, becoming the first free Black republic'},
-    {y:1808,t:'The importation of enslaved people into the United States was officially banned'},
-    {y:1863,t:'Abraham Lincoln signed the Emancipation Proclamation'},
-    {y:1876,t:'The Reichsbank opened as Germany\'s central bank'},
-    {y:1880,t:'Construction began on the Panama Canal under Ferdinand de Lesseps'},
-    {y:1892,t:'Ellis Island opened to process immigrants arriving in New York'},
-    {y:1901,t:'The Commonwealth of Australia was officially established'},
-    {y:1902,t:'The first Rose Bowl college football game was played'},
-    {y:1934,t:'Alcatraz became a federal penitentiary in San Francisco Bay'},
-    {y:1942,t:'Twenty-six nations signed the Declaration of the United Nations'},
-    {y:1956,t:'Sudan gained independence from Britain and Egypt'},
-    {y:1958,t:'The European Economic Community (EEC) was established'},
-    {y:1959,t:'Fidel Castro\'s revolution succeeded and he took power in Cuba'},
-    {y:1983,t:'The ARPANET officially switched to TCP/IP, birthing the modern Internet'},
-    {y:1993,t:'Czechoslovakia peacefully dissolved into two independent nations'},
-    {y:1999,t:'The Euro currency was officially introduced in eleven European countries'},
-  ],
-  '01-02': [
-    {y:1492,t:'Granada, the last Moorish stronghold in Spain, surrendered to the Spanish crown'},
-    {y:1788,t:'Georgia became the fourth state to ratify the US Constitution'},
-    {y:1839,t:'The first photograph of the Moon was taken by Louis Daguerre'},
-    {y:1860,t:'The planet Vulcan was erroneously reported discovered by Lescarbault'},
-    {y:1872,t:'Brigham Young was arrested for polygamy in Salt Lake City'},
-    {y:1882,t:'John D. Rockefeller organized the Standard Oil Trust'},
-    {y:1900,t:'The first electric omnibus began operating in New York City'},
-    {y:1905,t:'The Russian garrison at Port Arthur surrendered to Japan'},
-    {y:1920,t:'Isaac Asimov, legendary science fiction writer, was born'},
-    {y:1935,t:'Bruno Hauptmann went on trial for the kidnapping of Charles Lindbergh Jr'},
-    {y:1942,t:'Manila fell to Japanese forces during World War II'},
-    {y:1955,t:'President Jose Antonio Remon of Panama was assassinated'},
-    {y:1959,t:'Luna 1, the first spacecraft to reach the Moon\'s vicinity, was launched'},
-    {y:1965,t:'Indonesia announced its withdrawal from the United Nations'},
-    {y:1971,t:'A stampede at a Glasgow football match killed sixty-six spectators'},
-    {y:1974,t:'US President Nixon signed the 55 mph national speed limit into law'},
-    {y:1981,t:'Police in Yorkshire arrested Peter Sutcliffe, the Yorkshire Ripper'},
-    {y:1991,t:'Sharon Pratt Dixon became the first Black woman to serve as a US mayor'},
-    {y:2004,t:'NASA\'s Stardust spacecraft made its closest approach to Comet Wild 2'},
-    {y:2006,t:'A coal mine explosion in Sago, West Virginia, trapped thirteen miners'},
-    {y:2011,t:'A magnitude 7.0 earthquake struck southern Chile'},
-  ],
-  '04-04': [
-    {y:1581,t:'Francis Drake was knighted by Queen Elizabeth I aboard the Golden Hind'},
-    {y:1721,t:'Robert Walpole became the first de facto Prime Minister of Great Britain'},
-    {y:1768,t:'Philip Astley staged the first modern circus in London'},
-    {y:1818,t:'The United States Congress decided the flag would have thirteen stripes and one star per state'},
-    {y:1826,t:'Internal combustion engine was first patented by Samuel Morey'},
-    {y:1841,t:'US President William Henry Harrison died after just thirty-one days in office'},
-    {y:1850,t:'The city of Los Angeles was officially incorporated in California'},
-    {y:1887,t:'Susanna Salter became the first woman elected mayor in the United States'},
-    {y:1905,t:'A massive earthquake struck Kangra, India, claiming over 20,000 lives'},
-    {y:1928,t:'Maya Angelou, the iconic poet, author, and civil rights activist, was born'},
-    {y:1933,t:'The US Navy airship USS Akron crashed in a storm off New Jersey'},
-    {y:1949,t:'Twelve nations signed the North Atlantic Treaty, creating NATO'},
-    {y:1958,t:'The Campaign for Nuclear Disarmament unveiled the iconic peace symbol in London'},
-    {y:1960,t:'Senegal gained its independence from France'},
-    {y:1968,t:'Dr. Martin Luther King Jr. was assassinated in Memphis, Tennessee'},
-    {y:1973,t:'The World Trade Center officially opened in New York City'},
-    {y:1975,t:'Microsoft was founded by Bill Gates and Paul Allen in Albuquerque'},
-    {y:1979,t:'Former Prime Minister of Pakistan, Zulfikar Ali Bhutto, was executed'},
-    {y:1983,t:'Space Shuttle Challenger launched on its maiden voyage into orbit'},
-    {y:2010,t:'Apple\'s iPad went on sale for the very first time'},
-    {y:2016,t:'The Panama Papers were leaked, exposing global offshore tax evasion'},
-  ],
-};
-
-// ── Generate events for ANY day using a seeded approach ──
-// We have a large pool of 400+ world history events spanning centuries.
-// For days not explicitly in historyDB, we deterministically pick 21.
-const worldEvents = [
-  {y:1440,t:'Johannes Gutenberg invented the movable-type printing press'},
-  {y:1492,t:'Christopher Columbus set sail across the Atlantic Ocean'},
-  {y:1503,t:'Leonardo da Vinci began painting the Mona Lisa in Florence'},
-  {y:1519,t:'Ferdinand Magellan began the first circumnavigation of the globe'},
-  {y:1543,t:'Copernicus published his theory that the Earth revolves around the Sun'},
-  {y:1564,t:'William Shakespeare was born in Stratford-upon-Avon, England'},
-  {y:1582,t:'Pope Gregory XIII introduced the Gregorian calendar to the world'},
-  {y:1609,t:'Galileo Galilei first observed the moons of Jupiter through his telescope'},
-  {y:1665,t:'Isaac Newton discovered the law of gravity under an apple tree'},
-  {y:1687,t:'Newton published Principia Mathematica, transforming science forever'},
-  {y:1752,t:'Benjamin Franklin proved lightning was electrical with his famous kite experiment'},
-  {y:1760,t:'The Industrial Revolution began transforming manufacturing in England'},
-  {y:1769,t:'James Watt patented his improved steam engine'},
-  {y:1776,t:'The United States Declaration of Independence was adopted'},
-  {y:1783,t:'The Montgolfier brothers launched the first hot-air balloon flight in France'},
-  {y:1789,t:'The French Revolution began with the storming of the Bastille'},
-  {y:1796,t:'Edward Jenner administered the first smallpox vaccination'},
-  {y:1804,t:'The first steam railway locomotive was built by Richard Trevithick'},
-  {y:1815,t:'Napoleon was defeated at the Battle of Waterloo'},
-  {y:1825,t:'The world\'s first public railway opened between Stockton and Darlington'},
-  {y:1831,t:'Charles Darwin set sail on HMS Beagle for his world-changing voyage'},
-  {y:1837,t:'Samuel Morse demonstrated the electric telegraph for the first time'},
-  {y:1844,t:'The first telegraph message was sent: "What hath God wrought"'},
-  {y:1859,t:'Charles Darwin published On the Origin of Species'},
-  {y:1865,t:'Lewis Carroll published Alice\'s Adventures in Wonderland'},
-  {y:1869,t:'The Suez Canal opened, connecting the Mediterranean to the Red Sea'},
-  {y:1876,t:'Alexander Graham Bell made the first telephone call in history'},
-  {y:1879,t:'Thomas Edison demonstrated the first practical incandescent light bulb'},
-  {y:1885,t:'Karl Benz built the first practical automobile powered by an internal combustion engine'},
-  {y:1886,t:'The Statue of Liberty was dedicated in New York Harbor'},
-  {y:1893,t:'New Zealand became the first country to grant women the right to vote'},
-  {y:1895,t:'The Lumière brothers held the first public film screening in Paris'},
-  {y:1896,t:'The first modern Olympic Games were held in Athens, Greece'},
-  {y:1898,t:'Marie Curie discovered the radioactive element radium'},
-  {y:1901,t:'Guglielmo Marconi sent the first transatlantic radio signal'},
-  {y:1903,t:'The Wright brothers achieved the first powered airplane flight'},
-  {y:1905,t:'Albert Einstein published his theory of special relativity'},
-  {y:1906,t:'An earthquake devastated San Francisco, reshaping the city forever'},
-  {y:1908,t:'Henry Ford introduced the Model T, revolutionizing transportation'},
-  {y:1911,t:'Roald Amundsen became the first person to reach the South Pole'},
-  {y:1912,t:'The Titanic sank on its maiden voyage across the Atlantic'},
-  {y:1914,t:'The Panama Canal opened, connecting the Atlantic and Pacific oceans'},
-  {y:1915,t:'Albert Einstein published his general theory of relativity'},
-  {y:1916,t:'The theory of black holes was first proposed from Einstein\'s equations'},
-  {y:1920,t:'The first commercial radio broadcast was transmitted in Pittsburgh'},
-  {y:1921,t:'Insulin was first used to treat diabetes, saving millions of lives'},
-  {y:1927,t:'Charles Lindbergh completed the first solo transatlantic flight'},
-  {y:1928,t:'Alexander Fleming discovered penicillin, launching the antibiotic era'},
-  {y:1929,t:'The Hubble discovery proved the universe extends far beyond our galaxy'},
-  {y:1930,t:'Clyde Tombaugh discovered Pluto at the Lowell Observatory'},
-  {y:1932,t:'Amelia Earhart became the first woman to fly solo across the Atlantic'},
-  {y:1935,t:'Radar was first demonstrated in Britain by Robert Watson-Watt'},
-  {y:1937,t:'The Golden Gate Bridge opened to pedestrian traffic in San Francisco'},
-  {y:1939,t:'Einstein wrote to President Roosevelt, warning about atomic energy'},
-  {y:1943,t:'Jacques Cousteau co-invented the Aqua-Lung, opening the underwater world'},
-  {y:1945,t:'The United Nations was officially established to promote world peace'},
-  {y:1947,t:'Chuck Yeager broke the sound barrier for the first time'},
-  {y:1948,t:'The World Health Organization was established by the United Nations'},
-  {y:1950,t:'The first organ transplant was performed in Chicago'},
-  {y:1952,t:'Jonas Salk developed the first effective polio vaccine'},
-  {y:1953,t:'Watson and Crick discovered the double helix structure of DNA'},
-  {y:1957,t:'The Soviet Union launched Sputnik, the first artificial satellite'},
-  {y:1958,t:'NASA was established, launching America\'s space program'},
-  {y:1961,t:'Yuri Gagarin became the first human to journey into outer space'},
-  {y:1962,t:'John Glenn became the first American to orbit the Earth'},
-  {y:1963,t:'Martin Luther King Jr. delivered his "I Have a Dream" speech'},
-  {y:1964,t:'The Beatles appeared on The Ed Sullivan Show, starting Beatlemania in America'},
-  {y:1965,t:'The first spacewalk was performed by cosmonaut Alexei Leonov'},
-  {y:1967,t:'The first successful human heart transplant was performed in South Africa'},
-  {y:1968,t:'The first emergency 911 call was made in Haleyville, Alabama'},
-  {y:1969,t:'Neil Armstrong became the first human to walk on the Moon'},
-  {y:1970,t:'The first Earth Day was celebrated, sparking the environmental movement'},
-  {y:1971,t:'The first email was sent by Ray Tomlinson, forever changing communication'},
-  {y:1972,t:'The Voyager Golden Records were designed to represent Earth to extraterrestrials'},
-  {y:1973,t:'The first handheld mobile phone call was made by Martin Cooper of Motorola'},
-  {y:1975,t:'The Altair 8800 sparked the personal computer revolution'},
-  {y:1976,t:'Apple Computer was founded by Steve Jobs and Steve Wozniak in a garage'},
-  {y:1977,t:'The Voyager spacecraft were launched on their grand tour of the solar system'},
-  {y:1978,t:'The first test-tube baby, Louise Brown, was born in England'},
-  {y:1979,t:'Sony introduced the Walkman, making music truly portable for the first time'},
-  {y:1980,t:'Smallpox was declared officially eradicated by the World Health Organization'},
-  {y:1981,t:'The first Space Shuttle Columbia launched, ushering a new era in spaceflight'},
-  {y:1983,t:'The Internet as we know it was born when ARPANET adopted TCP/IP'},
-  {y:1984,t:'Apple launched the Macintosh with its iconic Super Bowl commercial'},
-  {y:1985,t:'The discovery of the ozone hole shocked the world into environmental action'},
-  {y:1986,t:'The Mir space station was launched, becoming humanity\'s home in orbit'},
-  {y:1989,t:'The Berlin Wall fell, symbolizing the end of the Cold War'},
-  {y:1990,t:'The Hubble Space Telescope was launched into orbit around Earth'},
-  {y:1991,t:'Tim Berners-Lee launched the World Wide Web, transforming civilization'},
-  {y:1993,t:'The European Union was formally established by the Maastricht Treaty'},
-  {y:1994,t:'Nelson Mandela was elected president of South Africa'},
-  {y:1995,t:'The Hubble Deep Field image revealed thousands of ancient galaxies'},
-  {y:1996,t:'Dolly the Sheep became the first mammal cloned from an adult cell'},
-  {y:1997,t:'IBM\'s Deep Blue defeated world chess champion Garry Kasparov'},
-  {y:1998,t:'The International Space Station began construction in orbit'},
-  {y:2000,t:'The Human Genome Project completed the first draft of the human genome'},
-  {y:2001,t:'Wikipedia was launched, becoming the world\'s largest encyclopedia'},
-  {y:2003,t:'The Human Genome Project was officially completed'},
-  {y:2004,t:'NASA\'s rovers Spirit and Opportunity landed on Mars'},
-  {y:2006,t:'Twitter was launched, changing how the world communicates'},
-  {y:2007,t:'Apple released the first iPhone, revolutionizing mobile technology'},
-  {y:2008,t:'The Large Hadron Collider was activated at CERN in Switzerland'},
-  {y:2010,t:'Instagram was launched, transforming how people share visual stories'},
-  {y:2011,t:'The Curiosity rover was launched toward Mars'},
-  {y:2012,t:'The Higgs boson was discovered at CERN, confirming a key physics theory'},
-  {y:2015,t:'NASA\'s New Horizons spacecraft flew past Pluto for the first time'},
-  {y:2016,t:'Gravitational waves were detected for the first time, confirming Einstein\'s prediction'},
-  {y:2019,t:'The first image of a black hole was captured by the Event Horizon Telescope'},
-  {y:2020,t:'The first COVID-19 vaccines were administered worldwide'},
-  {y:2021,t:'The James Webb Space Telescope was launched into space'},
-  {y:2023,t:'Artificial intelligence saw a massive breakthrough with large language models'},
-];
-
-// Get 21 events for today: use historyDB if available, else pick from worldEvents
-function getEventsForToday() {
-  const key = getTodayKey();
-  if (historyDB[key]) return historyDB[key];
-  // Seed from day-of-year for deterministic shuffle
-  const d = new Date();
-  const start = new Date(d.getFullYear(), 0, 0);
-  const doy = Math.floor((d - start) / 86400000);
-  // Simple seeded shuffle
-  const pool = worldEvents.slice();
-  let seed = doy * 2654435761;
-  for (let i = pool.length - 1; i > 0; i--) {
-    seed = (seed * 1664525 + 1013904223) & 0x7fffffff;
-    const j = seed % (i + 1);
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+async function fetchTodayEvents() {
+  try {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const url = 'https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/' + mm + '/' + dd;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    // Extract year + short text, pick up to 21 unique events
+    const events = (data.events || [])
+      .filter(e => e.year && e.text)
+      .map(e => ({ y: e.year, t: e.text }))
+      .slice(0, 50); // take a good pool
+    // Shuffle and pick 21
+    for (let i = events.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [events[i], events[j]] = [events[j], events[i]];
+    }
+    todayEvents = events.slice(0, 21);
+    // If we got fewer than 21, pad by cycling
+    while (todayEvents.length < 21 && todayEvents.length > 0) {
+      todayEvents.push(todayEvents[todayEvents.length % events.length]);
+    }
+  } catch (err) {
+    // Offline fallback — show a generic message
+    const d = new Date();
+    const monthNames = ['January','February','March','April','May','June',
+      'July','August','September','October','November','December'];
+    const fallbackText = 'Something wonderful happened on ' + monthNames[d.getMonth()] + ' ' + d.getDate() + ' — and today, you are part of history too.';
+    todayEvents = Array.from({length: 21}, () => ({ y: '✨', t: fallbackText }));
   }
-  return pool.slice(0, 21);
 }
 
-const todayEvents = getEventsForToday();
+// Fire the fetch immediately on load
+fetchTodayEvents();
 
 // ── Detect which color slice was pressed ──
 function getColorIndex(clientX, clientY) {
