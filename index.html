@@ -371,9 +371,31 @@ const quotes = [
 ];
 
 // ── "On This Day" — Live from Wikipedia API ──
-// Fetches real, factually accurate events for today's date
-// API: https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/{MM}/{DD}
-// Falls back to a generic message if offline
+// Fetches real events for today's date; falls back to verified historical facts
+
+const fallbackEvents = [
+  {y:'1969',t:'Apollo 11 astronauts became the first humans to walk on the Moon.'},
+  {y:'1989',t:'The Berlin Wall fell, reuniting East and West Germany after 28 years.'},
+  {y:'1945',t:'World War II ended in Europe as Germany signed an unconditional surrender.'},
+  {y:'1903',t:'The Wright Brothers made the first powered airplane flight at Kitty Hawk.'},
+  {y:'1947',t:'India gained independence from British rule after nearly 200 years.'},
+  {y:'1955',t:'Rosa Parks refused to give up her bus seat, sparking the Civil Rights Movement.'},
+  {y:'1961',t:'Yuri Gagarin became the first human to travel into outer space.'},
+  {y:'1776',t:'The United States Declaration of Independence was adopted by the Continental Congress.'},
+  {y:'1953',t:'Edmund Hillary and Tenzing Norgay became the first to summit Mount Everest.'},
+  {y:'1990',t:'Tim Berners-Lee published a formal proposal for the World Wide Web.'},
+  {y:'1928',t:'Alexander Fleming discovered penicillin, revolutionizing modern medicine.'},
+  {y:'1865',t:'The 13th Amendment was ratified, abolishing slavery in the United States.'},
+  {y:'1859',t:'Charles Darwin published On the Origin of Species, transforming biology.'},
+  {y:'1920',t:'The 19th Amendment was ratified, granting women the right to vote in the US.'},
+  {y:'1912',t:'The RMS Titanic sank on its maiden voyage across the Atlantic Ocean.'},
+  {y:'1969',t:'The first message was sent over ARPANET, the precursor to the internet.'},
+  {y:'1804',t:'The Lewis and Clark Expedition departed to explore the American West.'},
+  {y:'1963',t:'Martin Luther King Jr. delivered his historic I Have a Dream speech.'},
+  {y:'1981',t:'NASA launched the first Space Shuttle Columbia into orbit.'},
+  {y:'1876',t:'Alexander Graham Bell made the first successful telephone call.'},
+  {y:'1687',t:'Isaac Newton published the Principia, laying the foundation of classical physics.'}
+];
 
 let todayEvents = []; // filled async on load
 
@@ -386,28 +408,27 @@ async function fetchTodayEvents() {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
-    // Extract year + short text, pick up to 21 unique events
     const events = (data.events || [])
       .filter(e => e.year && e.text)
       .map(e => ({ y: e.year, t: e.text }))
-      .slice(0, 50); // take a good pool
-    // Shuffle and pick 21
+      .slice(0, 50);
+    // Shuffle
     for (let i = events.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [events[i], events[j]] = [events[j], events[i]];
     }
     todayEvents = events.slice(0, 21);
-    // If we got fewer than 21, pad by cycling
     while (todayEvents.length < 21 && todayEvents.length > 0) {
       todayEvents.push(todayEvents[todayEvents.length % events.length]);
     }
   } catch (err) {
-    // Offline fallback — show a generic message
-    const d = new Date();
-    const monthNames = ['January','February','March','April','May','June',
-      'July','August','September','October','November','December'];
-    const fallbackText = 'Something wonderful happened on ' + monthNames[d.getMonth()] + ' ' + d.getDate() + ' — and today, you are part of history too.';
-    todayEvents = Array.from({length: 21}, () => ({ y: '✨', t: fallbackText }));
+    // Offline fallback — use verified historical facts, shuffled
+    const fb = fallbackEvents.slice();
+    for (let i = fb.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [fb[i], fb[j]] = [fb[j], fb[i]];
+    }
+    todayEvents = fb;
   }
 }
 
@@ -889,7 +910,9 @@ function showQuote(colorIdx, durLevel) {
 
   // Map colorIdx * 3 + durLevel → unique event index (0..20)
   const eventIdx = colorIdx * 3 + durLevel;
-  const evt = todayEvents[eventIdx % todayEvents.length];
+  // If API fetch hasn't completed yet, use fallback
+  const evtPool = todayEvents.length > 0 ? todayEvents : fallbackEvents;
+  const evt = evtPool[eventIdx % evtPool.length];
 
   // Set card glow
   card.style.setProperty('--glow-color', color + '35');
