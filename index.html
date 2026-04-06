@@ -211,41 +211,41 @@
     padding-top: 10px;
     border-top: 1px solid rgba(255,255,255,0.06);
   }
+  .personality-label {
+    font-size: 0.55rem; text-transform: uppercase;
+    letter-spacing: 2px; color: rgba(255,255,255,0.3);
+    margin-bottom: 2px;
+  }
   .personality-type {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 0.95rem; font-weight: 700;
-    color: rgba(255,255,255,0.95);
+    font-size: 0.88rem; font-weight: 700;
+    color: rgba(255,255,255,0.9);
     margin-bottom: 8px;
-    line-height: 1.4;
   }
-  .superpowers {
-    display: flex; flex-wrap: wrap;
-    justify-content: center; gap: 6px;
-    margin-bottom: 10px;
+  .big5-bars {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 4px;
   }
-  .superpower {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 4px 10px;
-    border-radius: 16px;
-    font-size: 0.68rem; font-weight: 500;
-    letter-spacing: 0.3px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(220,220,255,0.85);
-    animation: badgePop 0.5s cubic-bezier(.16,.87,.35,1.15) backwards;
+  .big5-row {
+    display: flex; align-items: center; gap: 6px;
   }
-  .superpower:nth-child(1) { animation-delay: 0.3s; }
-  .superpower:nth-child(2) { animation-delay: 0.5s; }
-  .superpower:nth-child(3) { animation-delay: 0.7s; }
-  @keyframes badgePop {
-    from { transform: scale(0); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+  .big5-label {
+    font-size: 0.58rem; width: 85px; text-align: right;
+    color: rgba(200,200,230,0.6); letter-spacing: 0.3px;
+    flex-shrink: 0;
   }
-  .personality-desc {
-    font-size: 0.74rem; line-height: 1.55;
-    color: rgba(200,200,230,0.65);
-    font-style: italic;
-    margin-bottom: 2px;
+  .big5-track {
+    flex: 1; height: 5px; background: rgba(255,255,255,0.07);
+    border-radius: 3px; overflow: hidden; position: relative;
+  }
+  .big5-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 0%;
+  }
+  .big5-pct {
+    font-size: 0.55rem; width: 26px;
+    color: rgba(200,200,230,0.5); text-align: left;
   }
 
   /* History event section */
@@ -305,9 +305,9 @@
     <div class="quote-icon" id="quoteIcon">&#127775;</div>
     <div class="quote-text" id="quoteText"></div>
     <div class="personality-section">
+      <div class="personality-label">Your personality insight</div>
       <div class="personality-type" id="personalityType"></div>
-      <div class="superpowers" id="superpowers"></div>
-      <div class="personality-desc" id="personalityDesc"></div>
+      <div class="big5-bars" id="big5Bars"></div>
     </div>
     <div class="history-section">
       <div class="history-label">On this day</div>
@@ -471,60 +471,22 @@ const traitQuotes = {
   ],
 };
 
-// Personality archetype names
+// Personality type descriptions (dominant + secondary combo)
 const traitDescriptions = {
-  O: 'The Dreamy Trailblazer',
-  C: 'The Quiet Powerhouse',
-  E: 'The Spark That Lights the Room',
-  A: 'The Heart Everyone Trusts',
-  S: 'The Eye of the Storm',
+  O: 'The Visionary Explorer',
+  C: 'The Steady Architect',
+  E: 'The Radiant Connector',
+  A: 'The Gentle Guardian',
+  S: 'The Calm Sage',
 };
 
-// Emoji for archetype
+// Emoji badges for each trait
 const traitEmojis = {
   O: '\uD83C\uDF1F', // 🌟
   C: '\uD83C\uDFAF', // 🎯
   E: '\u26A1',       // ⚡
   A: '\uD83D\uDC9A', // 💚
   S: '\uD83E\uDDD8', // 🧘
-};
-
-// Superpower badges for each trait (top 3 shown)
-const traitSuperpowers = {
-  O: ['\uD83C\uDFA8 Creative Soul', '\uD83D\uDD2D Deep Thinker', '\uD83C\uDF08 Idea Machine'],
-  C: ['\uD83D\uDCAA Willpower', '\uD83D\uDDFA\uFE0F Master Planner', '\u2B50 Reliable Rock'],
-  E: ['\uD83D\uDD25 Magnetic Energy', '\uD83C\uDF89 Life of the Party', '\uD83E\uDD1D People Magnet'],
-  A: ['\uD83E\uDE77 Empathy Radar', '\uD83C\uDF3B Peacemaker', '\uD83E\uDD17 Warm Heart'],
-  S: ['\uD83C\uDF0A Calm Under Pressure', '\uD83E\uDDD0 Clear-Headed', '\u2696\uFE0F Balanced Mind'],
-};
-
-// Short personality descriptions (dominant trait × durLevel)
-const traitReadings = {
-  O: [
-    'You are a spark of wild imagination! Ideas hit you fast and you chase them without hesitation. The world needs people who dare to dream out loud — and that is you.',
-    'You have a rare gift for seeing patterns and possibilities that others miss entirely. Your creative mind is always quietly painting something beautiful behind the scenes.',
-    'You are the kind of deep soul who feels the universe in a single sunset. Your imagination runs vast and patient — you do not just think outside the box, you dissolve it.',
-  ],
-  C: [
-    'You are sharp, focused, and always ready. While others are still planning, you have already started. Your quick execution is your secret weapon.',
-    'You bring order to chaos with a smile. Steadily and thoughtfully, you build things that last — and people notice, even when you do not.',
-    'Your patience is legendary. You are the one who finishes what everyone else gives up on. That kind of quiet discipline changes the world.',
-  ],
-  E: [
-    'You walk into a room and the energy shifts. Quick, bold, magnetic — you have a natural gift for making everyone feel alive.',
-    'You are the glue in every group and the spark in every conversation. People are drawn to your warmth and your effortless ability to connect.',
-    'You pour deep energy into every relationship. Your enthusiasm is not just infectious — it is transformational. People remember how you made them feel.',
-  ],
-  A: [
-    'You sense what others need before they even say it. Quick to help, slow to judge — your instinct for kindness is a rare superpower.',
-    'You are the calm, caring presence everyone leans on. Your empathy runs deep and steady, and it creates a safe space wherever you go.',
-    'Your compassion is boundless and patient. You are the kind of soul who stays when everyone else leaves — and that loyalty heals people.',
-  ],
-  S: [
-    'You have a gift for staying cool when things get chaotic. Quick to reset, hard to rattle — your inner calm is contagious.',
-    'You process the world with quiet clarity. While others react, you observe, understand, and then act with precision. That is true strength.',
-    'You have mastered the art of inner peace. Nothing shakes you easily, and your steady presence gives everyone around you permission to exhale.',
-  ],
 };
 
 // ── "On This Day" — Live from Wikipedia API ──
@@ -1105,23 +1067,27 @@ function showQuote(colorIdx, durLevel) {
   qt.innerHTML =
     '\u201c<span class="first-word" style="' + fwStyle + '">' + firstWord + '</span> ' + rest + '\u201d';
 
-  // ── Personality archetype title ──
+  // ── Personality type title ──
   document.getElementById('personalityType').textContent =
-    traitEmojis[dom.key] + ' You are ' + traitDescriptions[dom.key];
+    traitEmojis[dom.key] + ' ' + traitDescriptions[dom.key] + ' + ' + traitDescriptions[sec.key];
 
-  // ── Superpower badges (top 3) ──
-  const spEl = document.getElementById('superpowers');
-  spEl.innerHTML = '';
-  traitSuperpowers[dom.key].forEach(sp => {
-    const badge = document.createElement('span');
-    badge.className = 'superpower';
-    badge.textContent = sp;
-    spEl.appendChild(badge);
+  // ── Big Five bar chart ──
+  const barColors = {
+    O: '#a78bfa', C: '#60a5fa', E: '#fbbf24', A: '#34d399', S: '#f472b6'
+  };
+  const barsEl = document.getElementById('big5Bars');
+  barsEl.innerHTML = '';
+  personality.sorted.forEach(t => {
+    const pct = Math.round(t.value * 100);
+    const row = document.createElement('div');
+    row.className = 'big5-row';
+    row.innerHTML =
+      '<span class="big5-label">' + t.label + '</span>' +
+      '<div class="big5-track"><div class="big5-fill" style="background:' +
+      barColors[t.key] + ';width:0%"></div></div>' +
+      '<span class="big5-pct">' + pct + '%</span>';
+    barsEl.appendChild(row);
   });
-
-  // ── Personal reading ──
-  document.getElementById('personalityDesc').textContent =
-    traitReadings[dom.key][durLevel];
 
   // History event
   document.getElementById('historyText').innerHTML =
@@ -1131,6 +1097,15 @@ function showQuote(colorIdx, durLevel) {
   playTune(colorIdx, durLevel);
 
   document.getElementById('overlay').classList.add('show');
+
+  // Animate bars after overlay appears
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      barsEl.querySelectorAll('.big5-fill').forEach((fill, i) => {
+        fill.style.width = Math.round(personality.sorted[i].value * 100) + '%';
+      });
+    }, 300);
+  });
 }
 
 document.getElementById('btnClose').addEventListener('click', () => {
