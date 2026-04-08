@@ -205,6 +205,24 @@
       12px 16px 24px rgba(0,0,0,0.2);
   }
 
+  /* Color + duration info */
+  .color-dur-info {
+    display: flex; justify-content: center; gap: 12px;
+    margin-bottom: 8px;
+  }
+  .info-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 0.62rem; letter-spacing: 0.3px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(200,200,230,0.7);
+  }
+  .info-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0;
+  }
+
   /* Personality insight section */
   .personality-section {
     margin-top: 6px;
@@ -214,38 +232,75 @@
   .personality-label {
     font-size: 0.55rem; text-transform: uppercase;
     letter-spacing: 2px; color: rgba(255,255,255,0.3);
-    margin-bottom: 2px;
-  }
-  .personality-type {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 0.88rem; font-weight: 700;
-    color: rgba(255,255,255,0.9);
-    margin-bottom: 8px;
-  }
-  .big5-bars {
-    display: flex; flex-direction: column; gap: 4px;
     margin-bottom: 4px;
   }
-  .big5-row {
-    display: flex; align-items: center; gap: 6px;
+  .personality-trait {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 0.85rem; font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.5;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px dashed rgba(255,255,255,0.12);
+    transition: background 0.3s;
   }
-  .big5-label {
-    font-size: 0.58rem; width: 85px; text-align: right;
-    color: rgba(200,200,230,0.6); letter-spacing: 0.3px;
-    flex-shrink: 0;
+  .personality-trait:active {
+    background: rgba(255,255,255,0.1);
   }
-  .big5-track {
-    flex: 1; height: 5px; background: rgba(255,255,255,0.07);
-    border-radius: 3px; overflow: hidden; position: relative;
+  .tap-hint {
+    font-size: 0.5rem; color: rgba(255,255,255,0.25);
+    margin-top: 3px; letter-spacing: 1px;
+    text-transform: uppercase;
   }
-  .big5-fill {
-    height: 100%; border-radius: 3px;
-    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* OCEAN popup modal */
+  .ocean-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.35s;
+  }
+  .ocean-modal.show { opacity: 1; pointer-events: auto; }
+  .ocean-body {
+    background: linear-gradient(165deg, rgba(40,40,75,0.98), rgba(20,20,42,1));
+    border-radius: 20px; padding: 22px 20px 18px;
+    width: 88%; max-width: 320px; position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .ocean-close {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; color: rgba(255,255,255,0.5);
+    font-size: 1.2rem; cursor: pointer; padding: 4px 8px;
+    line-height: 1;
+  }
+  .ocean-close:active { color: #fff; }
+  .ocean-title {
+    font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 2px; color: rgba(255,255,255,0.35);
+    margin-bottom: 14px; text-align: center;
+  }
+  .ocean-bars { display: flex; flex-direction: column; gap: 8px; }
+  .ocean-row { display: flex; align-items: center; gap: 8px; }
+  .ocean-lbl {
+    font-size: 0.65rem; width: 95px; text-align: right;
+    color: rgba(200,200,230,0.65); flex-shrink: 0;
+  }
+  .ocean-track {
+    flex: 1; height: 7px; background: rgba(255,255,255,0.07);
+    border-radius: 4px; overflow: hidden;
+  }
+  .ocean-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
     width: 0%;
   }
-  .big5-pct {
-    font-size: 0.55rem; width: 26px;
-    color: rgba(200,200,230,0.5); text-align: left;
+  .ocean-pct {
+    font-size: 0.6rem; width: 30px;
+    color: rgba(200,200,230,0.5);
   }
 
   /* History event section */
@@ -288,7 +343,7 @@
 </head>
 <body>
 
-<div class="title">&#10024; What Is YOUR Favorite Color? &#10024;</div>
+<div class="title">&#10024; Select Your Favorite Color! &#10024;</div>
 
 <div class="wheel-container" id="wheelContainer">
   <canvas id="wheel" width="600" height="600"></canvas>
@@ -304,16 +359,25 @@
   <div class="quote-card" id="quoteCard">
     <div class="quote-icon" id="quoteIcon">&#127775;</div>
     <div class="quote-text" id="quoteText"></div>
+    <div class="color-dur-info" id="colorDurInfo"></div>
     <div class="personality-section">
-      <div class="personality-label">Your personality insight</div>
-      <div class="personality-type" id="personalityType"></div>
-      <div class="big5-bars" id="big5Bars"></div>
+      <div class="personality-label">Personality insight</div>
+      <div class="personality-trait" id="personalityTrait"></div>
+      <div class="tap-hint">tap to see detailed analysis</div>
     </div>
     <div class="history-section">
       <div class="history-label">On this day</div>
       <div class="history-text" id="historyText"></div>
     </div>
     <button class="btn-close" id="btnClose">&#10024; Try Again</button>
+  </div>
+</div>
+
+<div class="ocean-modal" id="oceanModal">
+  <div class="ocean-body">
+    <button class="ocean-close" id="oceanClose">&times;</button>
+    <div class="ocean-title">Personality Profile (OCEAN)</div>
+    <div class="ocean-bars" id="oceanBars"></div>
   </div>
 </div>
 
@@ -441,52 +505,48 @@ function computePersonality(colorIdx, durLevel) {
   };
 }
 
-// ── Personality-driven quotes ──
-// Quotes are keyed by dominant trait, with 3 variants per trait
+// ── Dominant trait characterization (human-readable, no scores) ──
+// Passive, personified narratives — no "you" language
+const traitCharacterizations = {
+  O: 'An open, curious mind — drawn to new ideas, creative expression, and unconventional paths. A natural explorer of both the inner world and the outer one.',
+  C: 'A disciplined, organized spirit — detail-oriented, dependable, and quietly relentless. The kind of presence that builds cathedrals one careful stone at a time.',
+  E: 'A magnetic, outgoing energy — thriving on connection, conversation, and shared experiences. A room shifts when this personality walks in.',
+  A: 'A warm, compassionate heart — instinctively kind, deeply empathetic, and always the first to extend a hand. Trust grows naturally in this presence.',
+  S: 'A calm, grounded soul — emotionally steady, resilient under pressure, and unfazed by chaos. The eye of every storm, radiating quiet strength.',
+};
+
+// Trait-aligned quotes (3 variants per trait for durLevel variety)
 const traitQuotes = {
   O: [
-    'Your imagination paints worlds others have yet to dream — never stop creating.',
-    'Curiosity is your compass, and it always points toward something extraordinary.',
-    'You see beauty where others see the ordinary — that is your quiet revolution.',
+    'Imagination paints worlds others have yet to dream — the brush never stops moving.',
+    'Curiosity is the compass that always points toward something extraordinary.',
+    'Beauty hides where others see the ordinary — and creative eyes never miss it.',
   ],
   C: [
-    'Your discipline is not a cage — it is the architecture of your greatest achievements.',
-    'While others wish, you build. Your steady hands shape what the world needs most.',
-    'Patience and precision are rare gifts — you carry both with effortless grace.',
+    'Discipline is not a cage — it is the architecture of the greatest achievements.',
+    'While others wish, steady hands build. Quiet persistence shapes what the world needs most.',
+    'Patience and precision are rare gifts — carried here with effortless grace.',
   ],
   E: [
-    'Your energy is magnetic — you light up rooms and ignite hearts without even trying.',
-    'Connection is your superpower. People bloom in the warmth of your presence.',
-    'The world expands every time you step into it — keep showing up boldly.',
+    'Energy like this is magnetic — rooms light up and hearts ignite without effort.',
+    'Connection is the superpower. People bloom in the warmth of this presence.',
+    'The world expands every time bold spirits step into it — and keep showing up.',
   ],
   A: [
-    'Your kindness is not weakness — it is the strongest force the universe has ever known.',
-    'You carry empathy like a lantern, guiding others through their darkest corridors.',
-    'In a world rushing past, your gentle heart is the anchor everyone secretly needs.',
+    'Kindness is not weakness — it is the strongest force the universe has ever known.',
+    'Empathy carried like a lantern guides others through their darkest corridors.',
+    'In a world rushing past, a gentle heart is the anchor everyone secretly needs.',
   ],
   S: [
-    'Your calm is not silence — it is the deep hum of a mind that has mastered the storm.',
-    'Inner peace radiates outward, and yours touches everyone who crosses your path.',
-    'While the world trembles, you stand still — and that stillness moves mountains.',
+    'Calm is not silence — it is the deep hum of a mind that has mastered the storm.',
+    'Inner peace radiates outward, touching everyone who crosses the path.',
+    'While the world trembles, stillness stands firm — and that stillness moves mountains.',
   ],
 };
 
-// Personality type descriptions (dominant + secondary combo)
-const traitDescriptions = {
-  O: 'The Visionary Explorer',
-  C: 'The Steady Architect',
-  E: 'The Radiant Connector',
-  A: 'The Gentle Guardian',
-  S: 'The Calm Sage',
-};
-
-// Emoji badges for each trait
-const traitEmojis = {
-  O: '\uD83C\uDF1F', // 🌟
-  C: '\uD83C\uDFAF', // 🎯
-  E: '\u26A1',       // ⚡
-  A: '\uD83D\uDC9A', // 💚
-  S: '\uD83E\uDDD8', // 🧘
+// OCEAN bar colors
+const oceanColors = {
+  O: '#a78bfa', C: '#60a5fa', E: '#fbbf24', A: '#34d399', S: '#f472b6'
 };
 
 // ── "On This Day" — Live from Wikipedia API ──
@@ -621,10 +681,11 @@ function onPressEnd() {
 
   const durLevel = elapsed < 1000 ? 0 : elapsed < 2500 ? 1 : 2;
   const normalizedDur = Math.min(elapsed / MAX_DURATION, 1);
-  triggerSpin(pressedColorIdx, durLevel, normalizedDur);
+  const elapsedSec = (elapsed / 1000).toFixed(1);
+  triggerSpin(pressedColorIdx, durLevel, normalizedDur, elapsedSec);
 }
 
-function triggerSpin(colorIdx, durLevel, normalizedDur) {
+function triggerSpin(colorIdx, durLevel, normalizedDur, elapsedSec) {
   hint.textContent = '';
   cancelAnimationFrame(idleAnim);
   if (spinAnim) cancelAnimationFrame(spinAnim);
@@ -642,17 +703,17 @@ function triggerSpin(colorIdx, durLevel, normalizedDur) {
     if (t < 1) {
       spinAnim = requestAnimationFrame(animateSpin);
     } else {
-      setTimeout(() => showQuote(colorIdx, durLevel), 300);
+      setTimeout(() => showQuote(colorIdx, durLevel, elapsedSec), 300);
     }
   }
   spinAnim = requestAnimationFrame(animateSpin);
 }
 
-// ── Melodious Tune Engine (Web Audio API) ──
-// Rich, warm, music-box-like tones with proper musical composition
-// 21 unique looping pieces — each color has its own key, tempo & mood
+// ── Orchestral Tune Engine (Web Audio API) ──
+// Zubin Mehta-inspired grand orchestral style
+// Plays for exactly 30 seconds then fades out — no looping
 let audioCtx = null;
-let tuneInterval = null;
+let tuneTimeout = null;
 let activeSources = [];
 let masterGain = null;
 let tuneGen = 0;
@@ -663,78 +724,61 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-// ── Warm instrument: layered sine+triangle with gentle overtones ──
-function playNote(ctx, freq, startT, dur, dest, vol) {
-  // Layer 1: pure sine (body)
-  const o1 = ctx.createOscillator();
-  o1.type = 'sine';
-  o1.frequency.value = freq;
-  // Layer 2: soft triangle one octave up (shimmer)
-  const o2 = ctx.createOscillator();
-  o2.type = 'triangle';
-  o2.frequency.value = freq * 2;
-  // Layer 3: quiet sine at 3rd harmonic (warmth)
-  const o3 = ctx.createOscillator();
-  o3.type = 'sine';
-  o3.frequency.value = freq * 3;
+// ── Orchestral String Voice (layered for richness) ──
+function orchNote(ctx, freq, startT, dur, dest, vol) {
+  if (freq <= 0) return;
+  const v = vol || 0.28;
+  // Fundamental (warm sine)
+  const o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = freq;
+  // 2nd partial (triangle, soft — like bowed string)
+  const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq * 2;
+  // 3rd partial (very soft — adds body)
+  const o3 = ctx.createOscillator(); o3.type = 'sine'; o3.frequency.value = freq * 3;
 
-  const g1 = ctx.createGain();
-  const g2 = ctx.createGain();
-  const g3 = ctx.createGain();
+  const g1 = ctx.createGain(), g2 = ctx.createGain(), g3 = ctx.createGain();
 
-  // Gentle vibrato
-  const vib = ctx.createOscillator();
-  vib.frequency.value = 4.5;
-  const vibG = ctx.createGain();
-  vibG.gain.value = freq * 0.004;
-  vib.connect(vibG);
-  vibG.connect(o1.frequency);
-  vibG.connect(o2.frequency);
+  // Slow vibrato (orchestral strings)
+  const vib = ctx.createOscillator(); vib.frequency.value = 5.2;
+  const vibG = ctx.createGain(); vibG.gain.value = freq * 0.005;
+  vib.connect(vibG); vibG.connect(o1.frequency); vibG.connect(o2.frequency);
 
-  // Soft ADSR envelope — slow attack, long sustain, gentle release
-  const attack = Math.min(dur * 0.15, 0.12);
-  const release = Math.min(dur * 0.4, 0.5);
-  const sustain = dur - attack - release;
-  const peakVol = vol || 0.35;
-
-  [g1, g2, g3].forEach((g, idx) => {
-    const v = idx === 0 ? peakVol : idx === 1 ? peakVol * 0.15 : peakVol * 0.06;
+  // Orchestral ADSR: slow swell attack, rich sustain, gentle decay
+  const atk = Math.min(dur * 0.2, 0.25);
+  const rel = Math.min(dur * 0.35, 0.6);
+  [g1, g2, g3].forEach((g, i) => {
+    const lv = i === 0 ? v : i === 1 ? v * 0.18 : v * 0.07;
     g.gain.setValueAtTime(0, startT);
-    g.gain.linearRampToValueAtTime(v, startT + attack);
-    g.gain.setValueAtTime(v * 0.85, startT + attack + sustain);
+    g.gain.linearRampToValueAtTime(lv, startT + atk);
+    g.gain.setValueAtTime(lv * 0.9, startT + dur - rel);
     g.gain.linearRampToValueAtTime(0, startT + dur);
   });
 
   o1.connect(g1); g1.connect(dest);
   o2.connect(g2); g2.connect(dest);
   o3.connect(g3); g3.connect(dest);
-
   [o1,o2,o3,vib].forEach(o => { o.start(startT); o.stop(startT + dur + 0.05); });
   activeSources.push(o1,o2,o3,vib);
 }
 
-// ── Warm pad chord (sustained background harmony) ──
-function playPad(ctx, freqs, startT, dur, dest) {
+// ── Orchestral String Pad (sustained divisi strings) ──
+function orchPad(ctx, freqs, startT, dur, dest, vol) {
+  const v = vol || 0.06;
   freqs.forEach(freq => {
-    const o = ctx.createOscillator();
-    o.type = 'sine';
-    o.frequency.value = freq;
+    // Main voice
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, startT);
-    g.gain.linearRampToValueAtTime(0.07, startT + dur * 0.25);
-    g.gain.setValueAtTime(0.06, startT + dur * 0.75);
+    g.gain.linearRampToValueAtTime(v, startT + dur * 0.3);
+    g.gain.setValueAtTime(v * 0.85, startT + dur * 0.7);
     g.gain.linearRampToValueAtTime(0, startT + dur);
     o.connect(g); g.connect(dest);
     o.start(startT); o.stop(startT + dur + 0.1);
     activeSources.push(o);
-
-    // Detuned copy for chorus effect
-    const o2 = ctx.createOscillator();
-    o2.type = 'sine';
-    o2.frequency.value = freq * 1.003;
+    // Detuned double (orchestral width)
+    const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 1.002;
     const g2 = ctx.createGain();
     g2.gain.setValueAtTime(0, startT);
-    g2.gain.linearRampToValueAtTime(0.04, startT + dur * 0.3);
+    g2.gain.linearRampToValueAtTime(v * 0.6, startT + dur * 0.35);
     g2.gain.linearRampToValueAtTime(0, startT + dur);
     o2.connect(g2); g2.connect(dest);
     o2.start(startT); o2.stop(startT + dur + 0.1);
@@ -742,184 +786,188 @@ function playPad(ctx, freqs, startT, dur, dest) {
   });
 }
 
-// ── Soft bass note ──
-function playBass(ctx, freq, startT, dur, dest) {
-  const o = ctx.createOscillator();
-  o.type = 'sine';
-  o.frequency.value = freq;
+// ── Timpani / orchestral bass ──
+function orchBass(ctx, freq, startT, dur, dest) {
+  const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+  const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0, startT);
-  g.gain.linearRampToValueAtTime(0.18, startT + 0.1);
-  g.gain.setValueAtTime(0.14, startT + dur * 0.6);
+  g.gain.linearRampToValueAtTime(0.2, startT + 0.08);
+  g.gain.setValueAtTime(0.15, startT + dur * 0.5);
   g.gain.linearRampToValueAtTime(0, startT + dur);
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0, startT);
+  g2.gain.linearRampToValueAtTime(0.06, startT + 0.08);
+  g2.gain.linearRampToValueAtTime(0, startT + dur);
   o.connect(g); g.connect(dest);
+  o2.connect(g2); g2.connect(dest);
   o.start(startT); o.stop(startT + dur + 0.1);
-  activeSources.push(o);
+  o2.start(startT); o2.stop(startT + dur + 0.1);
+  activeSources.push(o, o2);
 }
 
-// ── 7 Musical Compositions — one key/mood per color ──
-// Each returns { melody, chords, bass, tempo, noteDur }
-// melody: [{n: freq, d: duration_beats}]
-// chords: [{notes: [freqs], start_beat, dur_beats}]
-// bass: [{n: freq, start_beat, dur_beats}]
+// ── Brass fanfare voice (for grand moments) ──
+function orchBrass(ctx, freq, startT, dur, dest, vol) {
+  if (freq <= 0) return;
+  const v = vol || 0.12;
+  const o1 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = freq;
+  const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.value = freq;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = freq * 3; lp.Q.value = 0.7;
+  const g1 = ctx.createGain(), g2 = ctx.createGain();
+  const atk = Math.min(dur * 0.15, 0.15);
+  g1.gain.setValueAtTime(0, startT);
+  g1.gain.linearRampToValueAtTime(v, startT + atk);
+  g1.gain.setValueAtTime(v * 0.8, startT + dur * 0.7);
+  g1.gain.linearRampToValueAtTime(0, startT + dur);
+  g2.gain.setValueAtTime(0, startT);
+  g2.gain.linearRampToValueAtTime(v * 0.3, startT + atk);
+  g2.gain.linearRampToValueAtTime(0, startT + dur);
+  o1.connect(g1); g1.connect(lp); lp.connect(dest);
+  o2.connect(g2); g2.connect(lp);
+  o1.start(startT); o1.stop(startT + dur + 0.05);
+  o2.start(startT); o2.stop(startT + dur + 0.05);
+  activeSources.push(o1, o2);
+}
 
-const F = { // Frequencies
-  C3:130.81,D3:146.83,E3:164.81,F3:174.61,G3:196,A3:220,B3:246.94,
+const F = {
+  C3:130.81,D3:146.83,Eb3:155.56,E3:164.81,F3:174.61,G3:196,Ab3:207.65,A3:220,Bb3:233.08,B3:246.94,
   C4:261.63,D4:293.66,Eb4:311.13,E4:329.63,F4:349.23,Fs4:369.99,G4:392,
   Ab4:415.30,A4:440,Bb4:466.16,B4:493.88,
   C5:523.25,D5:587.33,Eb5:622.25,E5:659.25,F5:698.46,G5:783.99,
   A5:880,B5:987.77,C6:1046.50
 };
 
-// 21 compositions: [colorIdx][durLevel]
-const compositions = [
-  // ── Violet: Dreamy, ethereal (C major pentatonic, slow) ──
-  [
-    { bpm:72, mel:[
-      {n:F.E4,d:2},{n:F.G4,d:2},{n:F.A4,d:3},{n:0,d:1},
-      {n:F.C5,d:2},{n:F.A4,d:2},{n:F.G4,d:4},
-    ], chords:[{ns:[F.C3,F.E3,F.G3],s:0,d:8},{ns:[F.A3,F.C4,F.E4],s:8,d:8}],
-       bass:[{n:F.C3,s:0,d:8},{n:F.A3*0.5,s:8,d:8}] },
-    { bpm:66, mel:[
-      {n:F.C5,d:3},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.E4,d:2},
-      {n:F.G4,d:3},{n:F.A4,d:1},{n:F.C5,d:2},{n:F.D5,d:2},
-      {n:F.C5,d:4},
-    ], chords:[{ns:[F.C3,F.E3,F.G3],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:6},{ns:[F.C3,F.E3,F.G3],s:14,d:6}],
-       bass:[{n:F.C3,s:0,d:8},{n:F.F3*0.5,s:8,d:6},{n:F.C3,s:14,d:6}] },
-    { bpm:60, mel:[
-      {n:F.G4,d:3},{n:F.A4,d:1},{n:F.C5,d:4},{n:F.D5,d:2},{n:F.C5,d:2},
-      {n:F.A4,d:3},{n:F.G4,d:1},{n:F.E4,d:4},{n:0,d:2},{n:F.G4,d:2},
-      {n:F.C5,d:6},
-    ], chords:[{ns:[F.C3,F.E3,F.G3],s:0,d:10},{ns:[F.A3,F.C4,F.E4],s:10,d:8},{ns:[F.C3,F.E3,F.G3],s:18,d:8}],
-       bass:[{n:F.C3,s:0,d:10},{n:F.A3*0.5,s:10,d:8},{n:F.C3,s:18,d:8}] },
-  ],
-  // ── Indigo: Contemplative (D minor, thoughtful) ──
-  [
-    { bpm:76, mel:[
-      {n:F.D4,d:2},{n:F.F4,d:2},{n:F.A4,d:3},{n:0,d:1},
-      {n:F.G4,d:2},{n:F.F4,d:2},{n:F.D4,d:4},
-    ], chords:[{ns:[F.D3,F.F3,F.A3],s:0,d:8},{ns:[F.G3,F.Bb4*0.5,F.D4],s:8,d:8}],
-       bass:[{n:F.D3,s:0,d:8},{n:F.G3*0.5,s:8,d:8}] },
-    { bpm:70, mel:[
-      {n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3},{n:F.E4,d:1},
-      {n:F.D4,d:2},{n:F.F4,d:2},{n:F.G4,d:2},{n:F.A4,d:2},
-      {n:F.G4,d:4},
-    ], chords:[{ns:[F.D3,F.F3,F.A3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.D3,F.F3,F.A3],s:14,d:6}],
-       bass:[{n:F.D3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.D3,s:14,d:6}] },
-    { bpm:64, mel:[
-      {n:F.D4,d:3},{n:F.E4,d:1},{n:F.F4,d:3},{n:F.G4,d:1},
-      {n:F.A4,d:4},{n:F.G4,d:2},{n:F.F4,d:2},{n:F.E4,d:2},{n:F.D4,d:2},
-      {n:F.F4,d:6},
-    ], chords:[{ns:[F.D3,F.F3,F.A3],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:8},{ns:[F.D3,F.F3,F.A3],s:16,d:10}],
-       bass:[{n:F.D3,s:0,d:8},{n:F.F3*0.5,s:8,d:8},{n:F.D3,s:16,d:10}] },
-  ],
-  // ── Blue: Serene, peaceful (F major, legato) ──
-  [
-    { bpm:68, mel:[
-      {n:F.F4,d:2},{n:F.A4,d:2},{n:F.C5,d:3},{n:0,d:1},
-      {n:F.Bb4,d:2},{n:F.A4,d:2},{n:F.F4,d:4},
-    ], chords:[{ns:[F.F3,F.A3,F.C4],s:0,d:8},{ns:[F.Bb4*0.5,F.D4,F.F4],s:8,d:8}],
-       bass:[{n:F.F3*0.5,s:0,d:8},{n:F.Bb4*0.25,s:8,d:8}] },
-    { bpm:63, mel:[
-      {n:F.C5,d:3},{n:F.A4,d:1},{n:F.F4,d:2},{n:F.G4,d:2},
-      {n:F.A4,d:3},{n:F.Bb4,d:1},{n:F.C5,d:2},{n:F.A4,d:2},
-      {n:F.F4,d:4},
-    ], chords:[{ns:[F.F3,F.A3,F.C4],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.F3,F.A3,F.C4],s:14,d:6}],
-       bass:[{n:F.F3*0.5,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.F3*0.5,s:14,d:6}] },
-    { bpm:58, mel:[
-      {n:F.A4,d:3},{n:F.C5,d:2},{n:F.Bb4,d:1},{n:F.A4,d:2},
-      {n:F.G4,d:2},{n:F.F4,d:4},{n:0,d:1},{n:F.A4,d:1},
-      {n:F.Bb4,d:2},{n:F.C5,d:2},{n:F.A4,d:6},
-    ], chords:[{ns:[F.F3,F.A3,F.C4],s:0,d:10},{ns:[F.Bb4*0.5,F.D4,F.F4],s:10,d:6},{ns:[F.F3,F.A3,F.C4],s:16,d:10}],
-       bass:[{n:F.F3*0.5,s:0,d:10},{n:F.Bb4*0.25,s:10,d:6},{n:F.F3*0.5,s:16,d:10}] },
-  ],
-  // ── Green: Uplifting, nature (G major, bright) ──
-  [
-    { bpm:80, mel:[
-      {n:F.G4,d:1},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.D5,d:2},
-      {n:F.C5,d:1},{n:F.B4,d:1},{n:F.A4,d:2},{n:F.G4,d:2},
-      {n:F.B4,d:4},
-    ], chords:[{ns:[F.G3,F.B3,F.D4],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:4},{ns:[F.G3,F.B3,F.D4],s:12,d:4}],
-       bass:[{n:F.G3*0.5,s:0,d:8},{n:F.C3,s:8,d:4},{n:F.G3*0.5,s:12,d:4}] },
-    { bpm:76, mel:[
-      {n:F.D4,d:1},{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:2},
-      {n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},
-      {n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:1},{n:F.G4,d:4},
-    ], chords:[{ns:[F.G3,F.B3,F.D4],s:0,d:8},{ns:[F.D3,F.Fs4*0.5,F.A3],s:8,d:6},{ns:[F.G3,F.B3,F.D4],s:14,d:6}],
-       bass:[{n:F.G3*0.5,s:0,d:8},{n:F.D3,s:8,d:6},{n:F.G3*0.5,s:14,d:6}] },
-    { bpm:72, mel:[
-      {n:F.G4,d:2},{n:F.B4,d:2},{n:F.D5,d:3},{n:F.C5,d:1},
-      {n:F.B4,d:2},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.A4,d:2},
-      {n:F.B4,d:3},{n:F.A4,d:1},{n:F.G4,d:6},
-    ], chords:[{ns:[F.G3,F.B3,F.D4],s:0,d:10},{ns:[F.C3,F.E3,F.G3],s:10,d:8},{ns:[F.G3,F.B3,F.D4],s:18,d:8}],
-       bass:[{n:F.G3*0.5,s:0,d:10},{n:F.C3,s:10,d:8},{n:F.G3*0.5,s:18,d:8}] },
-  ],
-  // ── Yellow: Cheerful, bright (C major, lively) ──
-  [
-    { bpm:92, mel:[
-      {n:F.C5,d:1},{n:F.E5,d:1},{n:F.G5,d:2},{n:F.E5,d:1},{n:F.C5,d:1},
-      {n:F.D5,d:2},{n:F.E5,d:1},{n:F.F5,d:1},{n:F.E5,d:2},{n:F.C5,d:2},
-      {n:F.G5,d:2},
-    ], chords:[{ns:[F.C4,F.E4,F.G4],s:0,d:6},{ns:[F.F4,F.A4,F.C5],s:6,d:4},{ns:[F.C4,F.E4,F.G4],s:10,d:4}],
-       bass:[{n:F.C3,s:0,d:6},{n:F.F3*0.5,s:6,d:4},{n:F.C3,s:10,d:4}] },
-    { bpm:88, mel:[
-      {n:F.G5,d:1},{n:F.E5,d:1},{n:F.C5,d:2},{n:F.D5,d:1},{n:F.E5,d:1},
-      {n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},
-      {n:F.E5,d:1},{n:F.G5,d:1},{n:F.C6,d:2},
-    ], chords:[{ns:[F.C4,F.E4,F.G4],s:0,d:6},{ns:[F.G3,F.B3,F.D4],s:6,d:4},{ns:[F.C4,F.E4,F.G4],s:10,d:6}],
-       bass:[{n:F.C3,s:0,d:6},{n:F.G3*0.5,s:6,d:4},{n:F.C3,s:10,d:6}] },
-    { bpm:84, mel:[
-      {n:F.E5,d:2},{n:F.G5,d:1},{n:F.A5,d:1},{n:F.G5,d:2},{n:F.E5,d:2},
-      {n:F.D5,d:1},{n:F.E5,d:1},{n:F.F5,d:2},{n:F.E5,d:2},
-      {n:F.C5,d:2},{n:F.D5,d:1},{n:F.E5,d:1},{n:F.C5,d:4},
-    ], chords:[{ns:[F.C4,F.E4,F.G4],s:0,d:8},{ns:[F.F4,F.A4,F.C5],s:8,d:6},{ns:[F.C4,F.E4,F.G4],s:14,d:6}],
-       bass:[{n:F.C3,s:0,d:8},{n:F.F3*0.5,s:8,d:6},{n:F.C3,s:14,d:6}] },
-  ],
-  // ── Orange: Warm, adventurous (A major, flowing) ──
-  [
-    { bpm:84, mel:[
-      {n:F.A4,d:1},{n:F.B4,d:1},{n:F.C5,d:1},{n:F.E5,d:1},{n:F.D5,d:2},
-      {n:F.C5,d:1},{n:F.B4,d:1},{n:F.A4,d:2},{n:F.C5,d:2},{n:F.A4,d:2},
-    ], chords:[{ns:[F.A3,F.C4,F.E4],s:0,d:6},{ns:[F.D4,F.F4,F.A4],s:6,d:4},{ns:[F.A3,F.C4,F.E4],s:10,d:4}],
-       bass:[{n:F.A3*0.5,s:0,d:6},{n:F.D3,s:6,d:4},{n:F.A3*0.5,s:10,d:4}] },
-    { bpm:80, mel:[
-      {n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.A4,d:2},
-      {n:F.B4,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},
-      {n:F.C5,d:2},{n:F.A4,d:2},
-    ], chords:[{ns:[F.A3,F.C4,F.E4],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:4},{ns:[F.A3,F.C4,F.E4],s:12,d:6}],
-       bass:[{n:F.A3*0.5,s:0,d:8},{n:F.F3*0.5,s:8,d:4},{n:F.A3*0.5,s:12,d:6}] },
-    { bpm:76, mel:[
-      {n:F.A4,d:2},{n:F.C5,d:2},{n:F.E5,d:3},{n:F.D5,d:1},
-      {n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.C5,d:2},
-      {n:F.D5,d:2},{n:F.E5,d:1},{n:F.C5,d:1},{n:F.A4,d:4},
-    ], chords:[{ns:[F.A3,F.C4,F.E4],s:0,d:8},{ns:[F.D4,F.F4,F.A4],s:8,d:8},{ns:[F.A3,F.C4,F.E4],s:16,d:8}],
-       bass:[{n:F.A3*0.5,s:0,d:8},{n:F.D3,s:8,d:8},{n:F.A3*0.5,s:16,d:8}] },
-  ],
-  // ── Red: Passionate, powerful (E minor, bold) ──
-  [
-    { bpm:80, mel:[
-      {n:F.E4,d:2},{n:F.G4,d:1},{n:F.B4,d:1},{n:F.A4,d:2},{n:F.G4,d:2},
-      {n:F.E4,d:1},{n:F.G4,d:1},{n:F.A4,d:2},{n:F.B4,d:2},{n:F.E5,d:2},
-    ], chords:[{ns:[F.E3,F.G3,F.B3],s:0,d:8},{ns:[F.A3,F.C4,F.E4],s:8,d:4},{ns:[F.E3,F.G3,F.B3],s:12,d:4}],
-       bass:[{n:F.E3,s:0,d:8},{n:F.A3*0.5,s:8,d:4},{n:F.E3,s:12,d:4}] },
-    { bpm:76, mel:[
-      {n:F.B4,d:2},{n:F.A4,d:1},{n:F.G4,d:1},{n:F.E4,d:2},{n:F.G4,d:2},
-      {n:F.A4,d:2},{n:F.B4,d:2},{n:F.C5,d:1},{n:F.B4,d:1},{n:F.A4,d:2},
-      {n:F.G4,d:1},{n:F.E4,d:1},{n:F.G4,d:2},
-    ], chords:[{ns:[F.E3,F.G3,F.B3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.E3,F.G3,F.B3],s:14,d:6}],
-       bass:[{n:F.E3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.E3,s:14,d:6}] },
-    { bpm:72, mel:[
-      {n:F.E4,d:3},{n:F.G4,d:1},{n:F.A4,d:2},{n:F.B4,d:2},
-      {n:F.C5,d:3},{n:F.B4,d:1},{n:F.A4,d:2},{n:F.G4,d:2},
-      {n:F.E4,d:2},{n:F.G4,d:2},{n:F.B4,d:2},{n:F.E5,d:4},
-    ], chords:[{ns:[F.E3,F.G3,F.B3],s:0,d:8},{ns:[F.A3,F.C4,F.E4],s:8,d:8},{ns:[F.E3,F.G3,F.B3],s:16,d:8}],
-       bass:[{n:F.E3,s:0,d:8},{n:F.A3*0.5,s:8,d:8},{n:F.E3,s:16,d:8}] },
-  ],
-];
+// ── 7 Grand Orchestral Scores — Zubin Mehta style ──
+// Each score fills ~30 seconds with: opening, development, climax, resolution
+// Structure: { bpm, sections: [{ melody, strings, brass, bass, startBeat, durBeats }] }
+
+function buildScore(colorIdx) {
+  // Each color has a unique key, mood and orchestral character
+  const scores = [
+    // ── Violet: Majestic & mystical (Eb major → grand, Romantic) ──
+    { bpm: 72, key: 'Eb', phrases: [
+      // Opening: slow strings swell
+      { mel: [{n:F.Eb4,d:3},{n:F.G4,d:2},{n:F.Bb4,d:3},{n:0,d:1},{n:F.Ab4,d:2},{n:F.G4,d:2},{n:F.Eb4,d:3}],
+        str: [{ns:[F.Eb3,F.G3,F.Bb3],d:10},{ns:[F.Ab3,F.C4,F.Eb4],d:9}], bass: [{n:F.Eb3*0.5,d:10},{n:F.Ab3*0.5,d:9}],
+        br: [] },
+      // Development: ascending grandeur
+      { mel: [{n:F.Bb4,d:2},{n:F.C5,d:2},{n:F.D5,d:3},{n:F.Eb5,d:3},{n:F.D5,d:2},{n:F.C5,d:1},{n:F.Bb4,d:2},{n:F.G4,d:3}],
+        str: [{ns:[F.Eb3,F.G3,F.Bb3],d:8},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.Eb3,F.G3,F.Bb3],d:5}],
+        bass: [{n:F.Eb3*0.5,d:8},{n:F.Bb3*0.5,d:5},{n:F.Eb3*0.5,d:5}],
+        br: [{n:F.Bb4,d:3,off:0},{n:F.Eb5,d:4,off:4}] },
+      // Climax: brass fanfare + full strings
+      { mel: [{n:F.Eb5,d:4},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.Bb4,d:3},{n:F.Ab4,d:1},{n:F.G4,d:2},{n:F.Bb4,d:2},{n:F.Eb5,d:4}],
+        str: [{ns:[F.Eb3,F.G3,F.Bb3,F.Eb4],d:10},{ns:[F.Ab3,F.C4,F.Eb4],d:5},{ns:[F.Eb3,F.G3,F.Bb3],d:5}],
+        bass: [{n:F.Eb3*0.5,d:10},{n:F.Ab3*0.5,d:5},{n:F.Eb3*0.5,d:5}],
+        br: [{n:F.Eb5,d:4,off:0},{n:F.Bb4,d:3,off:6},{n:F.Eb5,d:4,off:12}] },
+      // Resolution: gentle fade
+      { mel: [{n:F.G4,d:3},{n:F.Ab4,d:2},{n:F.G4,d:2},{n:F.Eb4,d:4},{n:0,d:2},{n:F.Bb4,d:2},{n:F.G4,d:3},{n:F.Eb4,d:6}],
+        str: [{ns:[F.Eb3,F.G3,F.Bb3],d:14},{ns:[F.Ab3,F.C4,F.Eb4],d:5},{ns:[F.Eb3,F.G3,F.Bb3],d:6}],
+        bass: [{n:F.Eb3*0.5,d:14},{n:F.Ab3*0.5,d:5},{n:F.Eb3*0.5,d:6}], br: [] },
+    ]},
+    // ── Indigo: Profound & noble (D minor → dark grandeur) ──
+    { bpm: 68, key: 'Dm', phrases: [
+      { mel: [{n:F.D4,d:3},{n:F.F4,d:2},{n:F.A4,d:4},{n:0,d:1},{n:F.G4,d:2},{n:F.F4,d:2},{n:F.E4,d:2},{n:F.D4,d:3}],
+        str: [{ns:[F.D3,F.F3,F.A3],d:10},{ns:[F.G3,F.Bb3,F.D4],d:9}], bass: [{n:F.D3*0.5,d:10},{n:F.G3*0.5,d:9}], br: [] },
+      { mel: [{n:F.A4,d:3},{n:F.Bb4,d:2},{n:F.C5,d:3},{n:F.D5,d:3},{n:F.C5,d:2},{n:F.Bb4,d:2},{n:F.A4,d:3}],
+        str: [{ns:[F.D3,F.F3,F.A3],d:8},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.A3,F.C4,F.E4],d:5}],
+        bass: [{n:F.D3*0.5,d:8},{n:F.Bb3*0.5,d:5},{n:F.A3*0.5,d:5}],
+        br: [{n:F.D5,d:3,off:6}] },
+      { mel: [{n:F.D5,d:4},{n:F.C5,d:2},{n:F.Bb4,d:2},{n:F.A4,d:3},{n:F.G4,d:1},{n:F.A4,d:2},{n:F.Bb4,d:2},{n:F.D5,d:4}],
+        str: [{ns:[F.D3,F.F3,F.A3,F.D4],d:10},{ns:[F.G3,F.Bb3,F.D4],d:5},{ns:[F.D3,F.F3,F.A3],d:5}],
+        bass: [{n:F.D3*0.5,d:10},{n:F.G3*0.5,d:5},{n:F.D3*0.5,d:5}],
+        br: [{n:F.D5,d:4,off:0},{n:F.A4,d:3,off:8}] },
+      { mel: [{n:F.F4,d:3},{n:F.E4,d:2},{n:F.D4,d:4},{n:0,d:2},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3},{n:F.D4,d:6}],
+        str: [{ns:[F.D3,F.F3,F.A3],d:14},{ns:[F.G3,F.Bb3,F.D4],d:5},{ns:[F.D3,F.F3,F.A3],d:6}],
+        bass: [{n:F.D3*0.5,d:14},{n:F.D3*0.5,d:11}], br: [] },
+    ]},
+    // ── Blue: Serene & sweeping (F major → pastoral grandeur) ──
+    { bpm: 66, key: 'F', phrases: [
+      { mel: [{n:F.F4,d:3},{n:F.A4,d:2},{n:F.C5,d:4},{n:0,d:1},{n:F.Bb4,d:2},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3}],
+        str: [{ns:[F.F3,F.A3,F.C4],d:10},{ns:[F.Bb3,F.D4,F.F4],d:9}], bass: [{n:F.F3*0.5,d:10},{n:F.Bb3*0.5,d:9}], br: [] },
+      { mel: [{n:F.C5,d:3},{n:F.D5,d:2},{n:F.E5,d:3},{n:F.F5,d:3},{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:2},{n:F.A4,d:3}],
+        str: [{ns:[F.F3,F.A3,F.C4],d:8},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.F3,F.A3,F.C4],d:5}],
+        bass: [{n:F.F3*0.5,d:8},{n:F.C3,d:5},{n:F.F3*0.5,d:5}],
+        br: [{n:F.F5,d:3,off:6}] },
+      { mel: [{n:F.F5,d:4},{n:F.E5,d:2},{n:F.D5,d:2},{n:F.C5,d:3},{n:F.Bb4,d:1},{n:F.A4,d:2},{n:F.C5,d:2},{n:F.F5,d:4}],
+        str: [{ns:[F.F3,F.A3,F.C4,F.F4],d:10},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.F3,F.A3,F.C4],d:5}],
+        bass: [{n:F.F3*0.5,d:10},{n:F.Bb3*0.5,d:5},{n:F.F3*0.5,d:5}],
+        br: [{n:F.F5,d:4,off:0},{n:F.C5,d:3,off:8}] },
+      { mel: [{n:F.A4,d:3},{n:F.G4,d:2},{n:F.F4,d:4},{n:0,d:2},{n:F.C5,d:2},{n:F.Bb4,d:2},{n:F.A4,d:3},{n:F.F4,d:6}],
+        str: [{ns:[F.F3,F.A3,F.C4],d:14},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.F3,F.A3,F.C4],d:6}],
+        bass: [{n:F.F3*0.5,d:25}], br: [] },
+    ]},
+    // ── Green: Triumphant & uplifting (G major → heroic) ──
+    { bpm: 76, key: 'G', phrases: [
+      { mel: [{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.D5,d:3},{n:0,d:1},{n:F.C5,d:2},{n:F.B4,d:2},{n:F.A4,d:2},{n:F.G4,d:3}],
+        str: [{ns:[F.G3,F.B3,F.D4],d:10},{ns:[F.C4,F.E4,F.G4],d:8}], bass: [{n:F.G3*0.5,d:10},{n:F.C3,d:8}], br: [] },
+      { mel: [{n:F.D5,d:2},{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.D5,d:3},{n:F.G5,d:3},{n:F.E5,d:2},{n:F.D5,d:2}],
+        str: [{ns:[F.G3,F.B3,F.D4],d:8},{ns:[F.D4,F.Fs4,F.A4],d:5},{ns:[F.G3,F.B3,F.D4],d:5}],
+        bass: [{n:F.G3*0.5,d:8},{n:F.D3,d:5},{n:F.G3*0.5,d:5}],
+        br: [{n:F.G5,d:3,off:8},{n:F.D5,d:2,off:4}] },
+      { mel: [{n:F.G5,d:4},{n:F.E5,d:2},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.D5,d:2},{n:F.G5,d:4}],
+        str: [{ns:[F.G3,F.B3,F.D4,F.G4],d:10},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.G3,F.B3,F.D4],d:5}],
+        bass: [{n:F.G3*0.5,d:10},{n:F.C3,d:5},{n:F.G3*0.5,d:5}],
+        br: [{n:F.G5,d:4,off:0},{n:F.D5,d:3,off:8},{n:F.G5,d:4,off:14}] },
+      { mel: [{n:F.B4,d:3},{n:F.A4,d:2},{n:F.G4,d:4},{n:0,d:2},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:3},{n:F.G4,d:6}],
+        str: [{ns:[F.G3,F.B3,F.D4],d:14},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.G3,F.B3,F.D4],d:6}],
+        bass: [{n:F.G3*0.5,d:25}], br: [] },
+    ]},
+    // ── Yellow: Radiant & joyous (C major → bright, festive) ──
+    { bpm: 84, key: 'C', phrases: [
+      { mel: [{n:F.C5,d:2},{n:F.E5,d:1},{n:F.G5,d:3},{n:F.E5,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:2},{n:F.F5,d:1},{n:F.E5,d:2},{n:F.C5,d:3}],
+        str: [{ns:[F.C4,F.E4,F.G4],d:9},{ns:[F.F4,F.A4,F.C5],d:5},{ns:[F.C4,F.E4,F.G4],d:4}], bass: [{n:F.C3,d:9},{n:F.F3*0.5,d:5},{n:F.C3,d:4}], br: [] },
+      { mel: [{n:F.G5,d:2},{n:F.A5,d:2},{n:F.G5,d:1},{n:F.F5,d:1},{n:F.E5,d:2},{n:F.G5,d:3},{n:F.C6,d:3},{n:F.A5,d:2},{n:F.G5,d:2}],
+        str: [{ns:[F.C4,F.E4,F.G4],d:8},{ns:[F.G3,F.B3,F.D4],d:5},{ns:[F.C4,F.E4,F.G4],d:5}],
+        bass: [{n:F.C3,d:8},{n:F.G3*0.5,d:5},{n:F.C3,d:5}],
+        br: [{n:F.C6,d:3,off:8},{n:F.G5,d:2,off:4}] },
+      { mel: [{n:F.C6,d:4},{n:F.A5,d:2},{n:F.G5,d:2},{n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.E5,d:2},{n:F.G5,d:2},{n:F.C6,d:4}],
+        str: [{ns:[F.C4,F.E4,F.G4,F.C5],d:10},{ns:[F.F4,F.A4,F.C5],d:5},{ns:[F.C4,F.E4,F.G4],d:5}],
+        bass: [{n:F.C3,d:10},{n:F.F3*0.5,d:5},{n:F.C3,d:5}],
+        br: [{n:F.C6,d:4,off:0},{n:F.G5,d:3,off:8}] },
+      { mel: [{n:F.E5,d:3},{n:F.D5,d:2},{n:F.C5,d:4},{n:0,d:2},{n:F.G5,d:2},{n:F.F5,d:2},{n:F.E5,d:3},{n:F.C5,d:6}],
+        str: [{ns:[F.C4,F.E4,F.G4],d:14},{ns:[F.F4,F.A4,F.C5],d:5},{ns:[F.C4,F.E4,F.G4],d:6}],
+        bass: [{n:F.C3,d:25}], br: [] },
+    ]},
+    // ── Orange: Fiery & adventurous (A minor → dramatic, cinematic) ──
+    { bpm: 78, key: 'Am', phrases: [
+      { mel: [{n:F.A4,d:2},{n:F.C5,d:2},{n:F.E5,d:3},{n:0,d:1},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:2},{n:F.A4,d:3}],
+        str: [{ns:[F.A3,F.C4,F.E4],d:10},{ns:[F.D4,F.F4,F.A4],d:7}], bass: [{n:F.A3*0.5,d:10},{n:F.D3,d:7}], br: [] },
+      { mel: [{n:F.E5,d:2},{n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},{n:F.E5,d:3},{n:F.A5,d:3},{n:F.G5,d:2},{n:F.E5,d:2}],
+        str: [{ns:[F.A3,F.C4,F.E4],d:8},{ns:[F.F3,F.A3,F.C4],d:5},{ns:[F.A3,F.C4,F.E4],d:5}],
+        bass: [{n:F.A3*0.5,d:8},{n:F.F3*0.5,d:5},{n:F.A3*0.5,d:5}],
+        br: [{n:F.A5,d:3,off:8},{n:F.E5,d:2,off:4}] },
+      { mel: [{n:F.A5,d:4},{n:F.G5,d:2},{n:F.F5,d:2},{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:2},{n:F.A5,d:4}],
+        str: [{ns:[F.A3,F.C4,F.E4,F.A4],d:10},{ns:[F.D4,F.F4,F.A4],d:5},{ns:[F.A3,F.C4,F.E4],d:5}],
+        bass: [{n:F.A3*0.5,d:10},{n:F.D3,d:5},{n:F.A3*0.5,d:5}],
+        br: [{n:F.A5,d:4,off:0},{n:F.E5,d:3,off:8}] },
+      { mel: [{n:F.C5,d:3},{n:F.B4,d:2},{n:F.A4,d:4},{n:0,d:2},{n:F.E5,d:2},{n:F.D5,d:2},{n:F.C5,d:3},{n:F.A4,d:6}],
+        str: [{ns:[F.A3,F.C4,F.E4],d:14},{ns:[F.D4,F.F4,F.A4],d:5},{ns:[F.A3,F.C4,F.E4],d:6}],
+        bass: [{n:F.A3*0.5,d:25}], br: [] },
+    ]},
+    // ── Red: Powerful & passionate (E minor → stormy, Wagnerian) ──
+    { bpm: 74, key: 'Em', phrases: [
+      { mel: [{n:F.E4,d:3},{n:F.G4,d:2},{n:F.B4,d:3},{n:0,d:1},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.Fs4,d:2},{n:F.E4,d:3}],
+        str: [{ns:[F.E3,F.G3,F.B3],d:10},{ns:[F.A3,F.C4,F.E4],d:8}], bass: [{n:F.E3*0.5,d:10},{n:F.A3*0.5,d:8}], br: [] },
+      { mel: [{n:F.B4,d:2},{n:F.C5,d:2},{n:F.D5,d:3},{n:F.E5,d:3},{n:F.D5,d:2},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.G4,d:3}],
+        str: [{ns:[F.E3,F.G3,F.B3],d:8},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.E3,F.G3,F.B3],d:5}],
+        bass: [{n:F.E3*0.5,d:8},{n:F.C3,d:5},{n:F.E3*0.5,d:5}],
+        br: [{n:F.E5,d:3,off:6},{n:F.B4,d:2,off:2}] },
+      { mel: [{n:F.E5,d:4},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:3},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.B4,d:2},{n:F.E5,d:4}],
+        str: [{ns:[F.E3,F.G3,F.B3,F.E4],d:10},{ns:[F.A3,F.C4,F.E4],d:5},{ns:[F.E3,F.G3,F.B3],d:5}],
+        bass: [{n:F.E3*0.5,d:10},{n:F.A3*0.5,d:5},{n:F.E3*0.5,d:5}],
+        br: [{n:F.E5,d:4,off:0},{n:F.B4,d:3,off:8},{n:F.E5,d:4,off:14}] },
+      { mel: [{n:F.G4,d:3},{n:F.Fs4,d:2},{n:F.E4,d:4},{n:0,d:2},{n:F.B4,d:2},{n:F.A4,d:2},{n:F.G4,d:3},{n:F.E4,d:6}],
+        str: [{ns:[F.E3,F.G3,F.B3],d:14},{ns:[F.A3,F.C4,F.E4],d:5},{ns:[F.E3,F.G3,F.B3],d:6}],
+        bass: [{n:F.E3*0.5,d:25}], br: [] },
+    ]},
+  ];
+  return scores[colorIdx];
+}
 
 function stopTune() {
   tuneGen++;
-  if (tuneInterval) { clearTimeout(tuneInterval); tuneInterval = null; }
+  if (tuneTimeout) { clearTimeout(tuneTimeout); tuneTimeout = null; }
   if (masterGain) {
     const ctx = getAudioCtx();
     const oldMaster = masterGain;
@@ -928,12 +976,12 @@ function stopTune() {
     activeSources = [];
     try {
       oldMaster.gain.setValueAtTime(oldMaster.gain.value, ctx.currentTime);
-      oldMaster.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+      oldMaster.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
     } catch(e){}
     setTimeout(() => {
       oldSources.forEach(s => { try { s.stop(); } catch(e){} });
       try { oldMaster.disconnect(); } catch(e){}
-    }, 700);
+    }, 1200);
   }
 }
 
@@ -941,70 +989,90 @@ function playTune(colorIdx, durLevel) {
   stopTune();
 
   const ctx = getAudioCtx();
-  const comp = compositions[colorIdx][durLevel];
+  const score = buildScore(colorIdx);
   const myGen = ++tuneGen;
 
-  // Master gain — good volume
+  // Master gain
   masterGain = ctx.createGain();
-  masterGain.gain.value = 0.75;
+  masterGain.gain.value = 0.7;
   masterGain.connect(ctx.destination);
 
-  // Convolution-free reverb via parallel delays
-  const dl1 = ctx.createDelay(); dl1.delayTime.value = 0.12;
-  const dl2 = ctx.createDelay(); dl2.delayTime.value = 0.24;
-  const dl3 = ctx.createDelay(); dl3.delayTime.value = 0.37;
-  const dg1 = ctx.createGain(); dg1.gain.value = 0.18;
-  const dg2 = ctx.createGain(); dg2.gain.value = 0.12;
-  const dg3 = ctx.createGain(); dg3.gain.value = 0.08;
-  dl1.connect(dg1); dg1.connect(masterGain);
-  dl2.connect(dg2); dg2.connect(masterGain);
-  dl3.connect(dg3); dg3.connect(masterGain);
+  // Hall reverb via parallel delays (concert hall simulation)
+  const delays = [0.11, 0.23, 0.37, 0.53];
+  const dGains = [0.16, 0.12, 0.09, 0.06];
+  delays.forEach((dt, i) => {
+    const dl = ctx.createDelay(); dl.delayTime.value = dt;
+    const dg = ctx.createGain(); dg.gain.value = dGains[i];
+    dl.connect(dg); dg.connect(masterGain);
+    activeSources._dlNodes = activeSources._dlNodes || [];
+    activeSources._dlNodes.push(dl);
+  });
 
   // Reverb bus
   const reverbBus = ctx.createGain();
   reverbBus.gain.value = 1;
   reverbBus.connect(masterGain);
-  reverbBus.connect(dl1);
-  reverbBus.connect(dl2);
-  reverbBus.connect(dl3);
+  (activeSources._dlNodes || []).forEach(dl => reverbBus.connect(dl));
 
-  const beatSec = 60 / comp.bpm;
+  const beatSec = 60 / score.bpm;
+  let currentBeat = 0;
+  const now = ctx.currentTime;
 
-  // Calculate total phrase length in beats
-  let totalBeats = 0;
-  comp.mel.forEach(m => totalBeats += m.d);
-  const phraseLen = totalBeats * beatSec;
+  // Dynamic volume based on durLevel: quick=softer, deep=fuller
+  const dynVol = [0.8, 1.0, 1.15][durLevel];
 
-  function playOnePhrase() {
-    if (myGen !== tuneGen || !masterGain) return;
-    const now = ctx.currentTime;
+  // Schedule all 4 phrases (opening, development, climax, resolution)
+  score.phrases.forEach((phrase, pi) => {
+    const isClimax = (pi === 2);
+    const isResolution = (pi === 3);
+    const melVol = (isClimax ? 0.35 : isResolution ? 0.22 : 0.28) * dynVol;
+    const padVol = (isClimax ? 0.08 : 0.06) * dynVol;
+    const brassVol = (isClimax ? 0.14 : 0.09) * dynVol;
 
-    // Play melody
-    let beatPos = 0;
-    comp.mel.forEach(note => {
-      const t0 = now + beatPos * beatSec;
+    // Melody
+    let melBeat = currentBeat;
+    phrase.mel.forEach(note => {
+      const t0 = now + melBeat * beatSec;
       const dur = note.d * beatSec;
-      if (note.n > 0) {
-        playNote(ctx, note.n, t0, dur * 0.92, reverbBus, 0.38);
-      }
-      beatPos += note.d;
+      if (note.n > 0) orchNote(ctx, note.n, t0, dur * 0.93, reverbBus, melVol);
+      melBeat += note.d;
     });
 
-    // Play chord pads
-    comp.chords.forEach(ch => {
-      playPad(ctx, ch.ns, now + ch.s * beatSec, ch.d * beatSec, reverbBus);
+    // String pads
+    let strBeat = currentBeat;
+    phrase.str.forEach(ch => {
+      orchPad(ctx, ch.ns, now + strBeat * beatSec, ch.d * beatSec, reverbBus, padVol);
+      strBeat += ch.d;
     });
 
-    // Play bass
-    comp.bass.forEach(b => {
-      playBass(ctx, b.n, now + b.s * beatSec, b.d * beatSec, reverbBus);
+    // Bass
+    let bassBeat = currentBeat;
+    phrase.bass.forEach(b => {
+      orchBass(ctx, b.n, now + bassBeat * beatSec, b.d * beatSec, reverbBus);
+      bassBeat += b.d;
     });
 
-    // Loop with a gentle breath
-    tuneInterval = setTimeout(playOnePhrase, (phraseLen + 0.8) * 1000);
-  }
+    // Brass (at specific offsets within phrase)
+    (phrase.br || []).forEach(b => {
+      orchBrass(ctx, b.n, now + (currentBeat + b.off) * beatSec, b.d * beatSec, reverbBus, brassVol);
+    });
 
-  playOnePhrase();
+    // Advance beat position by melody length + 1 beat gap
+    let phraseBeats = 0;
+    phrase.mel.forEach(n => phraseBeats += n.d);
+    currentBeat += phraseBeats + 1;
+  });
+
+  // Fade out master gain starting at 28s, fully silent by 30s
+  const fadeStart = now + 28;
+  const fadeEnd = now + 30;
+  masterGain.gain.setValueAtTime(0.7, fadeStart);
+  masterGain.gain.linearRampToValueAtTime(0, fadeEnd);
+
+  // Auto-stop at 30s
+  tuneTimeout = setTimeout(() => {
+    if (myGen === tuneGen) stopTune();
+  }, 30500);
 }
 
 // Darker shade helper for 3D extrusion sides
@@ -1021,15 +1089,9 @@ function lightenHex(hex, factor) {
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
-function showQuote(colorIdx, durLevel) {
-  // ── Compute personality profile ──
+function showQuote(colorIdx, durLevel, elapsedSec) {
   const personality = computePersonality(colorIdx, durLevel);
   const dom = personality.dominant;
-  const sec = personality.secondary;
-
-  // Pick quote from dominant trait, variant based on durLevel
-  const quoteText = traitQuotes[dom.key][durLevel];
-
   const color = VIBGYOR_BRIGHT[colorIdx];
   const card = document.getElementById('quoteCard');
   const qt = document.getElementById('quoteText');
@@ -1042,21 +1104,22 @@ function showQuote(colorIdx, durLevel) {
   // Set card glow
   card.style.setProperty('--glow-color', color + '35');
 
-  // Set 3D text extrusion colors for the entire quote in pressed color
+  // Set 3D text extrusion colors
   qt.style.setProperty('--text-front', color);
   qt.style.setProperty('--text-top', lightenHex(color, 1.4));
   qt.style.setProperty('--text-side-r', darkenHex(color, 0.35));
 
-  // Icon — use trait emoji
-  document.getElementById('quoteIcon').textContent = traitEmojis[dom.key];
+  // Icon
+  document.getElementById('quoteIcon').textContent = colorIcons[colorIdx];
 
-  // Build first-word with dynamic 3D color vars
+  // Quote aligned to dominant OCEAN trait
+  const quote = traitQuotes[dom.key][durLevel];
   const fwFront = color;
   const fwSide = darkenHex(color, 0.35);
   const fwTop = lightenHex(color, 1.4);
   const fwGlow = color + '80';
 
-  const words = quoteText.split(' ');
+  const words = quote.split(' ');
   const firstWord = words.shift();
   const rest = words.join(' ');
   const fwStyle = '--fw-front:' + fwFront +
@@ -1067,52 +1130,66 @@ function showQuote(colorIdx, durLevel) {
   qt.innerHTML =
     '\u201c<span class="first-word" style="' + fwStyle + '">' + firstWord + '</span> ' + rest + '\u201d';
 
-  // ── Personality type title ──
-  document.getElementById('personalityType').textContent =
-    traitEmojis[dom.key] + ' ' + traitDescriptions[dom.key] + ' + ' + traitDescriptions[sec.key];
+  // Color + duration info chips
+  const durLabels = ['Quick tap', 'Moderate hold', 'Deep press'];
+  const sec = elapsedSec || '?';
+  document.getElementById('colorDurInfo').innerHTML =
+    '<span class="info-chip"><span class="dot" style="background:' + color + '"></span>' + colorNames[colorIdx] + '</span>' +
+    '<span class="info-chip">\u23F1 ' + durLabels[durLevel] + ' (' + sec + 's)</span>';
 
-  // ── Big Five bar chart ──
-  const barColors = {
-    O: '#a78bfa', C: '#60a5fa', E: '#fbbf24', A: '#34d399', S: '#f472b6'
-  };
-  const barsEl = document.getElementById('big5Bars');
-  barsEl.innerHTML = '';
-  personality.sorted.forEach(t => {
-    const pct = Math.round(t.value * 100);
-    const row = document.createElement('div');
-    row.className = 'big5-row';
-    row.innerHTML =
-      '<span class="big5-label">' + t.label + '</span>' +
-      '<div class="big5-track"><div class="big5-fill" style="background:' +
-      barColors[t.key] + ';width:0%"></div></div>' +
-      '<span class="big5-pct">' + pct + '%</span>';
-    barsEl.appendChild(row);
-  });
+  // Personality trait characterization (tappable)
+  document.getElementById('personalityTrait').textContent = traitCharacterizations[dom.key];
+
+  // Store personality for OCEAN popup
+  window._lastOcean = personality;
 
   // History event
   document.getElementById('historyText').innerHTML =
     '<span class="history-year">' + evt.y + '</span> \u2014 ' + evt.t;
 
-  // Play the unique tune
+  // Play orchestral tune
   playTune(colorIdx, durLevel);
 
   document.getElementById('overlay').classList.add('show');
-
-  // Animate bars after overlay appears
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      barsEl.querySelectorAll('.big5-fill').forEach((fill, i) => {
-        fill.style.width = Math.round(personality.sorted[i].value * 100) + '%';
-      });
-    }, 300);
-  });
 }
 
 document.getElementById('btnClose').addEventListener('click', () => {
   stopTune();
   document.getElementById('overlay').classList.remove('show');
+  document.getElementById('oceanModal').classList.remove('show');
   hint.textContent = 'Press & hold any color on the wheel!';
   idleSpin();
+});
+
+// ── OCEAN popup: tap personality trait to show bar chart ──
+document.getElementById('personalityTrait').addEventListener('click', () => {
+  const p = window._lastOcean;
+  if (!p) return;
+  const barsEl = document.getElementById('oceanBars');
+  const labels = { O: 'Openness', C: 'Conscientiousness', E: 'Extraversion', A: 'Agreeableness', S: 'Emotional Stability' };
+  barsEl.innerHTML = '';
+  p.sorted.forEach(item => {
+    const pct = Math.round(item.value * 100);
+    const row = document.createElement('div');
+    row.className = 'ocean-row';
+    row.innerHTML =
+      '<div class="ocean-lbl">' + labels[item.key] + '</div>' +
+      '<div class="ocean-track"><div class="ocean-fill" style="background:' + oceanColors[item.key] + ';width:0%"></div></div>' +
+      '<div class="ocean-pct">' + pct + '%</div>';
+    barsEl.appendChild(row);
+  });
+  document.getElementById('oceanModal').classList.add('show');
+  // Animate bars in
+  setTimeout(() => {
+    barsEl.querySelectorAll('.ocean-fill').forEach((fill, i) => {
+      const pct = Math.round(p.sorted[i].value * 100);
+      fill.style.width = pct + '%';
+    });
+  }, 50);
+});
+
+document.getElementById('oceanClose').addEventListener('click', () => {
+  document.getElementById('oceanModal').classList.remove('show');
 });
 
 // Touch events
@@ -1123,6 +1200,16 @@ container.addEventListener('touchcancel', onPressEnd);
 // Mouse fallback
 container.addEventListener('mousedown', onPressStart);
 window.addEventListener('mouseup', onPressEnd);
+
+// ── Text-to-Speech greeting on load ──
+window.addEventListener('load', () => {
+  if ('speechSynthesis' in window) {
+    const utter = new SpeechSynthesisUtterance('Select your favorite color!');
+    utter.rate = 0.95;
+    utter.pitch = 1.1;
+    speechSynthesis.speak(utter);
+  }
+});
 
 // ── Inline Service Worker for PWA ──
 if ('serviceWorker' in navigator) {
