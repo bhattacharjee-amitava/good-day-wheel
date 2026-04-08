@@ -1201,27 +1201,6 @@ container.addEventListener('touchcancel', onPressEnd);
 container.addEventListener('mousedown', onPressStart);
 window.addEventListener('mouseup', onPressEnd);
 
-// ── Text-to-Speech greeting ──
-// Browsers block speech on load without user gesture, so we speak on first interaction
-let ttsSpoken = false;
-function speakGreeting() {
-  if (ttsSpoken) return;
-  ttsSpoken = true;
-  if ('speechSynthesis' in window) {
-    // Cancel any queued speech first
-    speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance('Select your favorite color!');
-    utter.rate = 0.95;
-    utter.pitch = 1.1;
-    speechSynthesis.speak(utter);
-  }
-  document.removeEventListener('pointerdown', speakGreeting);
-  document.removeEventListener('touchstart', speakGreeting);
-  document.removeEventListener('click', speakGreeting);
-}
-document.addEventListener('pointerdown', speakGreeting, { once: true });
-document.addEventListener('touchstart', speakGreeting, { once: true });
-document.addEventListener('click', speakGreeting, { once: true });
 
 // ── Inline Service Worker for PWA ──
 if ('serviceWorker' in navigator) {
