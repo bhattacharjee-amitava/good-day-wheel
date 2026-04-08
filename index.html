@@ -709,11 +709,12 @@ function triggerSpin(colorIdx, durLevel, normalizedDur, elapsedSec) {
   spinAnim = requestAnimationFrame(animateSpin);
 }
 
-// ── Orchestral Tune Engine (Web Audio API) ──
-// Zubin Mehta-inspired grand orchestral style
-// Plays for exactly 30 seconds then fades out — no looping
+// ── Melodious Tune Engine (Web Audio API) ──
+// Rich, warm, music-box-like tones with proper musical composition
+// Plays for 30 seconds then stops — no looping
 let audioCtx = null;
-let tuneTimeout = null;
+let tuneInterval = null;
+let tuneStopTimer = null;
 let activeSources = [];
 let masterGain = null;
 let tuneGen = 0;
@@ -724,32 +725,27 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-// ── Orchestral String Voice (layered for richness) ──
-function orchNote(ctx, freq, startT, dur, dest, vol) {
-  if (freq <= 0) return;
-  const v = vol || 0.28;
-  // Fundamental (warm sine)
+// ── Warm instrument: layered sine+triangle with gentle overtones ──
+function playNote(ctx, freq, startT, dur, dest, vol) {
   const o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = freq;
-  // 2nd partial (triangle, soft — like bowed string)
   const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq * 2;
-  // 3rd partial (very soft — adds body)
   const o3 = ctx.createOscillator(); o3.type = 'sine'; o3.frequency.value = freq * 3;
-
   const g1 = ctx.createGain(), g2 = ctx.createGain(), g3 = ctx.createGain();
 
-  // Slow vibrato (orchestral strings)
-  const vib = ctx.createOscillator(); vib.frequency.value = 5.2;
-  const vibG = ctx.createGain(); vibG.gain.value = freq * 0.005;
+  const vib = ctx.createOscillator(); vib.frequency.value = 4.5;
+  const vibG = ctx.createGain(); vibG.gain.value = freq * 0.004;
   vib.connect(vibG); vibG.connect(o1.frequency); vibG.connect(o2.frequency);
 
-  // Orchestral ADSR: slow swell attack, rich sustain, gentle decay
-  const atk = Math.min(dur * 0.2, 0.25);
-  const rel = Math.min(dur * 0.35, 0.6);
-  [g1, g2, g3].forEach((g, i) => {
-    const lv = i === 0 ? v : i === 1 ? v * 0.18 : v * 0.07;
+  const attack = Math.min(dur * 0.15, 0.12);
+  const release = Math.min(dur * 0.4, 0.5);
+  const sustain = dur - attack - release;
+  const peakVol = vol || 0.35;
+
+  [g1, g2, g3].forEach((g, idx) => {
+    const v = idx === 0 ? peakVol : idx === 1 ? peakVol * 0.15 : peakVol * 0.06;
     g.gain.setValueAtTime(0, startT);
-    g.gain.linearRampToValueAtTime(lv, startT + atk);
-    g.gain.setValueAtTime(lv * 0.9, startT + dur - rel);
+    g.gain.linearRampToValueAtTime(v, startT + attack);
+    g.gain.setValueAtTime(v * 0.85, startT + attack + sustain);
     g.gain.linearRampToValueAtTime(0, startT + dur);
   });
 
@@ -760,25 +756,23 @@ function orchNote(ctx, freq, startT, dur, dest, vol) {
   activeSources.push(o1,o2,o3,vib);
 }
 
-// ── Orchestral String Pad (sustained divisi strings) ──
-function orchPad(ctx, freqs, startT, dur, dest, vol) {
-  const v = vol || 0.06;
+// ── Warm pad chord ──
+function playPad(ctx, freqs, startT, dur, dest) {
   freqs.forEach(freq => {
-    // Main voice
     const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, startT);
-    g.gain.linearRampToValueAtTime(v, startT + dur * 0.3);
-    g.gain.setValueAtTime(v * 0.85, startT + dur * 0.7);
+    g.gain.linearRampToValueAtTime(0.07, startT + dur * 0.25);
+    g.gain.setValueAtTime(0.06, startT + dur * 0.75);
     g.gain.linearRampToValueAtTime(0, startT + dur);
     o.connect(g); g.connect(dest);
     o.start(startT); o.stop(startT + dur + 0.1);
     activeSources.push(o);
-    // Detuned double (orchestral width)
-    const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 1.002;
+
+    const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 1.003;
     const g2 = ctx.createGain();
     g2.gain.setValueAtTime(0, startT);
-    g2.gain.linearRampToValueAtTime(v * 0.6, startT + dur * 0.35);
+    g2.gain.linearRampToValueAtTime(0.04, startT + dur * 0.3);
     g2.gain.linearRampToValueAtTime(0, startT + dur);
     o2.connect(g2); g2.connect(dest);
     o2.start(startT); o2.stop(startT + dur + 0.1);
@@ -786,188 +780,84 @@ function orchPad(ctx, freqs, startT, dur, dest, vol) {
   });
 }
 
-// ── Timpani / orchestral bass ──
-function orchBass(ctx, freq, startT, dur, dest) {
+// ── Soft bass note ──
+function playBass(ctx, freq, startT, dur, dest) {
   const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
-  const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0, startT);
-  g.gain.linearRampToValueAtTime(0.2, startT + 0.08);
-  g.gain.setValueAtTime(0.15, startT + dur * 0.5);
+  g.gain.linearRampToValueAtTime(0.18, startT + 0.1);
+  g.gain.setValueAtTime(0.14, startT + dur * 0.6);
   g.gain.linearRampToValueAtTime(0, startT + dur);
-  const g2 = ctx.createGain();
-  g2.gain.setValueAtTime(0, startT);
-  g2.gain.linearRampToValueAtTime(0.06, startT + 0.08);
-  g2.gain.linearRampToValueAtTime(0, startT + dur);
   o.connect(g); g.connect(dest);
-  o2.connect(g2); g2.connect(dest);
   o.start(startT); o.stop(startT + dur + 0.1);
-  o2.start(startT); o2.stop(startT + dur + 0.1);
-  activeSources.push(o, o2);
-}
-
-// ── Brass fanfare voice (for grand moments) ──
-function orchBrass(ctx, freq, startT, dur, dest, vol) {
-  if (freq <= 0) return;
-  const v = vol || 0.12;
-  const o1 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = freq;
-  const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.value = freq;
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = freq * 3; lp.Q.value = 0.7;
-  const g1 = ctx.createGain(), g2 = ctx.createGain();
-  const atk = Math.min(dur * 0.15, 0.15);
-  g1.gain.setValueAtTime(0, startT);
-  g1.gain.linearRampToValueAtTime(v, startT + atk);
-  g1.gain.setValueAtTime(v * 0.8, startT + dur * 0.7);
-  g1.gain.linearRampToValueAtTime(0, startT + dur);
-  g2.gain.setValueAtTime(0, startT);
-  g2.gain.linearRampToValueAtTime(v * 0.3, startT + atk);
-  g2.gain.linearRampToValueAtTime(0, startT + dur);
-  o1.connect(g1); g1.connect(lp); lp.connect(dest);
-  o2.connect(g2); g2.connect(lp);
-  o1.start(startT); o1.stop(startT + dur + 0.05);
-  o2.start(startT); o2.stop(startT + dur + 0.05);
-  activeSources.push(o1, o2);
+  activeSources.push(o);
 }
 
 const F = {
-  C3:130.81,D3:146.83,Eb3:155.56,E3:164.81,F3:174.61,G3:196,Ab3:207.65,A3:220,Bb3:233.08,B3:246.94,
+  C3:130.81,D3:146.83,E3:164.81,F3:174.61,G3:196,A3:220,B3:246.94,
   C4:261.63,D4:293.66,Eb4:311.13,E4:329.63,F4:349.23,Fs4:369.99,G4:392,
   Ab4:415.30,A4:440,Bb4:466.16,B4:493.88,
   C5:523.25,D5:587.33,Eb5:622.25,E5:659.25,F5:698.46,G5:783.99,
   A5:880,B5:987.77,C6:1046.50
 };
 
-// ── 7 Grand Orchestral Scores — Zubin Mehta style ──
-// Each score fills ~30 seconds with: opening, development, climax, resolution
-// Structure: { bpm, sections: [{ melody, strings, brass, bass, startBeat, durBeats }] }
-
-function buildScore(colorIdx) {
-  // Each color has a unique key, mood and orchestral character
-  const scores = [
-    // ── Violet: Majestic & mystical (Eb major → grand, Romantic) ──
-    { bpm: 72, key: 'Eb', phrases: [
-      // Opening: slow strings swell
-      { mel: [{n:F.Eb4,d:3},{n:F.G4,d:2},{n:F.Bb4,d:3},{n:0,d:1},{n:F.Ab4,d:2},{n:F.G4,d:2},{n:F.Eb4,d:3}],
-        str: [{ns:[F.Eb3,F.G3,F.Bb3],d:10},{ns:[F.Ab3,F.C4,F.Eb4],d:9}], bass: [{n:F.Eb3*0.5,d:10},{n:F.Ab3*0.5,d:9}],
-        br: [] },
-      // Development: ascending grandeur
-      { mel: [{n:F.Bb4,d:2},{n:F.C5,d:2},{n:F.D5,d:3},{n:F.Eb5,d:3},{n:F.D5,d:2},{n:F.C5,d:1},{n:F.Bb4,d:2},{n:F.G4,d:3}],
-        str: [{ns:[F.Eb3,F.G3,F.Bb3],d:8},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.Eb3,F.G3,F.Bb3],d:5}],
-        bass: [{n:F.Eb3*0.5,d:8},{n:F.Bb3*0.5,d:5},{n:F.Eb3*0.5,d:5}],
-        br: [{n:F.Bb4,d:3,off:0},{n:F.Eb5,d:4,off:4}] },
-      // Climax: brass fanfare + full strings
-      { mel: [{n:F.Eb5,d:4},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.Bb4,d:3},{n:F.Ab4,d:1},{n:F.G4,d:2},{n:F.Bb4,d:2},{n:F.Eb5,d:4}],
-        str: [{ns:[F.Eb3,F.G3,F.Bb3,F.Eb4],d:10},{ns:[F.Ab3,F.C4,F.Eb4],d:5},{ns:[F.Eb3,F.G3,F.Bb3],d:5}],
-        bass: [{n:F.Eb3*0.5,d:10},{n:F.Ab3*0.5,d:5},{n:F.Eb3*0.5,d:5}],
-        br: [{n:F.Eb5,d:4,off:0},{n:F.Bb4,d:3,off:6},{n:F.Eb5,d:4,off:12}] },
-      // Resolution: gentle fade
-      { mel: [{n:F.G4,d:3},{n:F.Ab4,d:2},{n:F.G4,d:2},{n:F.Eb4,d:4},{n:0,d:2},{n:F.Bb4,d:2},{n:F.G4,d:3},{n:F.Eb4,d:6}],
-        str: [{ns:[F.Eb3,F.G3,F.Bb3],d:14},{ns:[F.Ab3,F.C4,F.Eb4],d:5},{ns:[F.Eb3,F.G3,F.Bb3],d:6}],
-        bass: [{n:F.Eb3*0.5,d:14},{n:F.Ab3*0.5,d:5},{n:F.Eb3*0.5,d:6}], br: [] },
-    ]},
-    // ── Indigo: Profound & noble (D minor → dark grandeur) ──
-    { bpm: 68, key: 'Dm', phrases: [
-      { mel: [{n:F.D4,d:3},{n:F.F4,d:2},{n:F.A4,d:4},{n:0,d:1},{n:F.G4,d:2},{n:F.F4,d:2},{n:F.E4,d:2},{n:F.D4,d:3}],
-        str: [{ns:[F.D3,F.F3,F.A3],d:10},{ns:[F.G3,F.Bb3,F.D4],d:9}], bass: [{n:F.D3*0.5,d:10},{n:F.G3*0.5,d:9}], br: [] },
-      { mel: [{n:F.A4,d:3},{n:F.Bb4,d:2},{n:F.C5,d:3},{n:F.D5,d:3},{n:F.C5,d:2},{n:F.Bb4,d:2},{n:F.A4,d:3}],
-        str: [{ns:[F.D3,F.F3,F.A3],d:8},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.A3,F.C4,F.E4],d:5}],
-        bass: [{n:F.D3*0.5,d:8},{n:F.Bb3*0.5,d:5},{n:F.A3*0.5,d:5}],
-        br: [{n:F.D5,d:3,off:6}] },
-      { mel: [{n:F.D5,d:4},{n:F.C5,d:2},{n:F.Bb4,d:2},{n:F.A4,d:3},{n:F.G4,d:1},{n:F.A4,d:2},{n:F.Bb4,d:2},{n:F.D5,d:4}],
-        str: [{ns:[F.D3,F.F3,F.A3,F.D4],d:10},{ns:[F.G3,F.Bb3,F.D4],d:5},{ns:[F.D3,F.F3,F.A3],d:5}],
-        bass: [{n:F.D3*0.5,d:10},{n:F.G3*0.5,d:5},{n:F.D3*0.5,d:5}],
-        br: [{n:F.D5,d:4,off:0},{n:F.A4,d:3,off:8}] },
-      { mel: [{n:F.F4,d:3},{n:F.E4,d:2},{n:F.D4,d:4},{n:0,d:2},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3},{n:F.D4,d:6}],
-        str: [{ns:[F.D3,F.F3,F.A3],d:14},{ns:[F.G3,F.Bb3,F.D4],d:5},{ns:[F.D3,F.F3,F.A3],d:6}],
-        bass: [{n:F.D3*0.5,d:14},{n:F.D3*0.5,d:11}], br: [] },
-    ]},
-    // ── Blue: Serene & sweeping (F major → pastoral grandeur) ──
-    { bpm: 66, key: 'F', phrases: [
-      { mel: [{n:F.F4,d:3},{n:F.A4,d:2},{n:F.C5,d:4},{n:0,d:1},{n:F.Bb4,d:2},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3}],
-        str: [{ns:[F.F3,F.A3,F.C4],d:10},{ns:[F.Bb3,F.D4,F.F4],d:9}], bass: [{n:F.F3*0.5,d:10},{n:F.Bb3*0.5,d:9}], br: [] },
-      { mel: [{n:F.C5,d:3},{n:F.D5,d:2},{n:F.E5,d:3},{n:F.F5,d:3},{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:2},{n:F.A4,d:3}],
-        str: [{ns:[F.F3,F.A3,F.C4],d:8},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.F3,F.A3,F.C4],d:5}],
-        bass: [{n:F.F3*0.5,d:8},{n:F.C3,d:5},{n:F.F3*0.5,d:5}],
-        br: [{n:F.F5,d:3,off:6}] },
-      { mel: [{n:F.F5,d:4},{n:F.E5,d:2},{n:F.D5,d:2},{n:F.C5,d:3},{n:F.Bb4,d:1},{n:F.A4,d:2},{n:F.C5,d:2},{n:F.F5,d:4}],
-        str: [{ns:[F.F3,F.A3,F.C4,F.F4],d:10},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.F3,F.A3,F.C4],d:5}],
-        bass: [{n:F.F3*0.5,d:10},{n:F.Bb3*0.5,d:5},{n:F.F3*0.5,d:5}],
-        br: [{n:F.F5,d:4,off:0},{n:F.C5,d:3,off:8}] },
-      { mel: [{n:F.A4,d:3},{n:F.G4,d:2},{n:F.F4,d:4},{n:0,d:2},{n:F.C5,d:2},{n:F.Bb4,d:2},{n:F.A4,d:3},{n:F.F4,d:6}],
-        str: [{ns:[F.F3,F.A3,F.C4],d:14},{ns:[F.Bb3,F.D4,F.F4],d:5},{ns:[F.F3,F.A3,F.C4],d:6}],
-        bass: [{n:F.F3*0.5,d:25}], br: [] },
-    ]},
-    // ── Green: Triumphant & uplifting (G major → heroic) ──
-    { bpm: 76, key: 'G', phrases: [
-      { mel: [{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.D5,d:3},{n:0,d:1},{n:F.C5,d:2},{n:F.B4,d:2},{n:F.A4,d:2},{n:F.G4,d:3}],
-        str: [{ns:[F.G3,F.B3,F.D4],d:10},{ns:[F.C4,F.E4,F.G4],d:8}], bass: [{n:F.G3*0.5,d:10},{n:F.C3,d:8}], br: [] },
-      { mel: [{n:F.D5,d:2},{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.D5,d:3},{n:F.G5,d:3},{n:F.E5,d:2},{n:F.D5,d:2}],
-        str: [{ns:[F.G3,F.B3,F.D4],d:8},{ns:[F.D4,F.Fs4,F.A4],d:5},{ns:[F.G3,F.B3,F.D4],d:5}],
-        bass: [{n:F.G3*0.5,d:8},{n:F.D3,d:5},{n:F.G3*0.5,d:5}],
-        br: [{n:F.G5,d:3,off:8},{n:F.D5,d:2,off:4}] },
-      { mel: [{n:F.G5,d:4},{n:F.E5,d:2},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.D5,d:2},{n:F.G5,d:4}],
-        str: [{ns:[F.G3,F.B3,F.D4,F.G4],d:10},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.G3,F.B3,F.D4],d:5}],
-        bass: [{n:F.G3*0.5,d:10},{n:F.C3,d:5},{n:F.G3*0.5,d:5}],
-        br: [{n:F.G5,d:4,off:0},{n:F.D5,d:3,off:8},{n:F.G5,d:4,off:14}] },
-      { mel: [{n:F.B4,d:3},{n:F.A4,d:2},{n:F.G4,d:4},{n:0,d:2},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:3},{n:F.G4,d:6}],
-        str: [{ns:[F.G3,F.B3,F.D4],d:14},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.G3,F.B3,F.D4],d:6}],
-        bass: [{n:F.G3*0.5,d:25}], br: [] },
-    ]},
-    // ── Yellow: Radiant & joyous (C major → bright, festive) ──
-    { bpm: 84, key: 'C', phrases: [
-      { mel: [{n:F.C5,d:2},{n:F.E5,d:1},{n:F.G5,d:3},{n:F.E5,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:2},{n:F.F5,d:1},{n:F.E5,d:2},{n:F.C5,d:3}],
-        str: [{ns:[F.C4,F.E4,F.G4],d:9},{ns:[F.F4,F.A4,F.C5],d:5},{ns:[F.C4,F.E4,F.G4],d:4}], bass: [{n:F.C3,d:9},{n:F.F3*0.5,d:5},{n:F.C3,d:4}], br: [] },
-      { mel: [{n:F.G5,d:2},{n:F.A5,d:2},{n:F.G5,d:1},{n:F.F5,d:1},{n:F.E5,d:2},{n:F.G5,d:3},{n:F.C6,d:3},{n:F.A5,d:2},{n:F.G5,d:2}],
-        str: [{ns:[F.C4,F.E4,F.G4],d:8},{ns:[F.G3,F.B3,F.D4],d:5},{ns:[F.C4,F.E4,F.G4],d:5}],
-        bass: [{n:F.C3,d:8},{n:F.G3*0.5,d:5},{n:F.C3,d:5}],
-        br: [{n:F.C6,d:3,off:8},{n:F.G5,d:2,off:4}] },
-      { mel: [{n:F.C6,d:4},{n:F.A5,d:2},{n:F.G5,d:2},{n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.E5,d:2},{n:F.G5,d:2},{n:F.C6,d:4}],
-        str: [{ns:[F.C4,F.E4,F.G4,F.C5],d:10},{ns:[F.F4,F.A4,F.C5],d:5},{ns:[F.C4,F.E4,F.G4],d:5}],
-        bass: [{n:F.C3,d:10},{n:F.F3*0.5,d:5},{n:F.C3,d:5}],
-        br: [{n:F.C6,d:4,off:0},{n:F.G5,d:3,off:8}] },
-      { mel: [{n:F.E5,d:3},{n:F.D5,d:2},{n:F.C5,d:4},{n:0,d:2},{n:F.G5,d:2},{n:F.F5,d:2},{n:F.E5,d:3},{n:F.C5,d:6}],
-        str: [{ns:[F.C4,F.E4,F.G4],d:14},{ns:[F.F4,F.A4,F.C5],d:5},{ns:[F.C4,F.E4,F.G4],d:6}],
-        bass: [{n:F.C3,d:25}], br: [] },
-    ]},
-    // ── Orange: Fiery & adventurous (A minor → dramatic, cinematic) ──
-    { bpm: 78, key: 'Am', phrases: [
-      { mel: [{n:F.A4,d:2},{n:F.C5,d:2},{n:F.E5,d:3},{n:0,d:1},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:2},{n:F.A4,d:3}],
-        str: [{ns:[F.A3,F.C4,F.E4],d:10},{ns:[F.D4,F.F4,F.A4],d:7}], bass: [{n:F.A3*0.5,d:10},{n:F.D3,d:7}], br: [] },
-      { mel: [{n:F.E5,d:2},{n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},{n:F.E5,d:3},{n:F.A5,d:3},{n:F.G5,d:2},{n:F.E5,d:2}],
-        str: [{ns:[F.A3,F.C4,F.E4],d:8},{ns:[F.F3,F.A3,F.C4],d:5},{ns:[F.A3,F.C4,F.E4],d:5}],
-        bass: [{n:F.A3*0.5,d:8},{n:F.F3*0.5,d:5},{n:F.A3*0.5,d:5}],
-        br: [{n:F.A5,d:3,off:8},{n:F.E5,d:2,off:4}] },
-      { mel: [{n:F.A5,d:4},{n:F.G5,d:2},{n:F.F5,d:2},{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:2},{n:F.A5,d:4}],
-        str: [{ns:[F.A3,F.C4,F.E4,F.A4],d:10},{ns:[F.D4,F.F4,F.A4],d:5},{ns:[F.A3,F.C4,F.E4],d:5}],
-        bass: [{n:F.A3*0.5,d:10},{n:F.D3,d:5},{n:F.A3*0.5,d:5}],
-        br: [{n:F.A5,d:4,off:0},{n:F.E5,d:3,off:8}] },
-      { mel: [{n:F.C5,d:3},{n:F.B4,d:2},{n:F.A4,d:4},{n:0,d:2},{n:F.E5,d:2},{n:F.D5,d:2},{n:F.C5,d:3},{n:F.A4,d:6}],
-        str: [{ns:[F.A3,F.C4,F.E4],d:14},{ns:[F.D4,F.F4,F.A4],d:5},{ns:[F.A3,F.C4,F.E4],d:6}],
-        bass: [{n:F.A3*0.5,d:25}], br: [] },
-    ]},
-    // ── Red: Powerful & passionate (E minor → stormy, Wagnerian) ──
-    { bpm: 74, key: 'Em', phrases: [
-      { mel: [{n:F.E4,d:3},{n:F.G4,d:2},{n:F.B4,d:3},{n:0,d:1},{n:F.A4,d:2},{n:F.G4,d:2},{n:F.Fs4,d:2},{n:F.E4,d:3}],
-        str: [{ns:[F.E3,F.G3,F.B3],d:10},{ns:[F.A3,F.C4,F.E4],d:8}], bass: [{n:F.E3*0.5,d:10},{n:F.A3*0.5,d:8}], br: [] },
-      { mel: [{n:F.B4,d:2},{n:F.C5,d:2},{n:F.D5,d:3},{n:F.E5,d:3},{n:F.D5,d:2},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.G4,d:3}],
-        str: [{ns:[F.E3,F.G3,F.B3],d:8},{ns:[F.C4,F.E4,F.G4],d:5},{ns:[F.E3,F.G3,F.B3],d:5}],
-        bass: [{n:F.E3*0.5,d:8},{n:F.C3,d:5},{n:F.E3*0.5,d:5}],
-        br: [{n:F.E5,d:3,off:6},{n:F.B4,d:2,off:2}] },
-      { mel: [{n:F.E5,d:4},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:3},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.B4,d:2},{n:F.E5,d:4}],
-        str: [{ns:[F.E3,F.G3,F.B3,F.E4],d:10},{ns:[F.A3,F.C4,F.E4],d:5},{ns:[F.E3,F.G3,F.B3],d:5}],
-        bass: [{n:F.E3*0.5,d:10},{n:F.A3*0.5,d:5},{n:F.E3*0.5,d:5}],
-        br: [{n:F.E5,d:4,off:0},{n:F.B4,d:3,off:8},{n:F.E5,d:4,off:14}] },
-      { mel: [{n:F.G4,d:3},{n:F.Fs4,d:2},{n:F.E4,d:4},{n:0,d:2},{n:F.B4,d:2},{n:F.A4,d:2},{n:F.G4,d:3},{n:F.E4,d:6}],
-        str: [{ns:[F.E3,F.G3,F.B3],d:14},{ns:[F.A3,F.C4,F.E4],d:5},{ns:[F.E3,F.G3,F.B3],d:6}],
-        bass: [{n:F.E3*0.5,d:25}], br: [] },
-    ]},
-  ];
-  return scores[colorIdx];
-}
+// 7 compositions — one per color (used for all durLevels)
+const compositions = [
+  // Violet: Dreamy (C major pentatonic)
+  { bpm:66, mel:[
+    {n:F.C5,d:3},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.E4,d:2},
+    {n:F.G4,d:3},{n:F.A4,d:1},{n:F.C5,d:2},{n:F.D5,d:2},
+    {n:F.C5,d:4},
+  ], chords:[{ns:[F.C3,F.E3,F.G3],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:6},{ns:[F.C3,F.E3,F.G3],s:14,d:6}],
+     bass:[{n:F.C3,s:0,d:8},{n:F.F3*0.5,s:8,d:6},{n:F.C3,s:14,d:6}] },
+  // Indigo: Contemplative (D minor)
+  { bpm:70, mel:[
+    {n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3},{n:F.E4,d:1},
+    {n:F.D4,d:2},{n:F.F4,d:2},{n:F.G4,d:2},{n:F.A4,d:2},
+    {n:F.G4,d:4},
+  ], chords:[{ns:[F.D3,F.F3,F.A3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.D3,F.F3,F.A3],s:14,d:6}],
+     bass:[{n:F.D3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.D3,s:14,d:6}] },
+  // Blue: Serene (F major)
+  { bpm:63, mel:[
+    {n:F.C5,d:3},{n:F.A4,d:1},{n:F.F4,d:2},{n:F.G4,d:2},
+    {n:F.A4,d:3},{n:F.Bb4,d:1},{n:F.C5,d:2},{n:F.A4,d:2},
+    {n:F.F4,d:4},
+  ], chords:[{ns:[F.F3,F.A3,F.C4],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.F3,F.A3,F.C4],s:14,d:6}],
+     bass:[{n:F.F3*0.5,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.F3*0.5,s:14,d:6}] },
+  // Green: Uplifting (G major)
+  { bpm:76, mel:[
+    {n:F.D4,d:1},{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:2},
+    {n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},
+    {n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:1},{n:F.G4,d:4},
+  ], chords:[{ns:[F.G3,F.B3,F.D4],s:0,d:8},{ns:[F.D3,F.Fs4*0.5,F.A3],s:8,d:6},{ns:[F.G3,F.B3,F.D4],s:14,d:6}],
+     bass:[{n:F.G3*0.5,s:0,d:8},{n:F.D3,s:8,d:6},{n:F.G3*0.5,s:14,d:6}] },
+  // Yellow: Cheerful (C major, lively)
+  { bpm:88, mel:[
+    {n:F.G5,d:1},{n:F.E5,d:1},{n:F.C5,d:2},{n:F.D5,d:1},{n:F.E5,d:1},
+    {n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},
+    {n:F.E5,d:1},{n:F.G5,d:1},{n:F.C6,d:2},
+  ], chords:[{ns:[F.C4,F.E4,F.G4],s:0,d:6},{ns:[F.G3,F.B3,F.D4],s:6,d:4},{ns:[F.C4,F.E4,F.G4],s:10,d:6}],
+     bass:[{n:F.C3,s:0,d:6},{n:F.G3*0.5,s:6,d:4},{n:F.C3,s:10,d:6}] },
+  // Orange: Warm, adventurous (A major)
+  { bpm:80, mel:[
+    {n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.A4,d:2},
+    {n:F.B4,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},
+    {n:F.C5,d:2},{n:F.A4,d:2},
+  ], chords:[{ns:[F.A3,F.C4,F.E4],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:4},{ns:[F.A3,F.C4,F.E4],s:12,d:6}],
+     bass:[{n:F.A3*0.5,s:0,d:8},{n:F.F3*0.5,s:8,d:4},{n:F.A3*0.5,s:12,d:6}] },
+  // Red: Passionate (E minor)
+  { bpm:76, mel:[
+    {n:F.B4,d:2},{n:F.A4,d:1},{n:F.G4,d:1},{n:F.E4,d:2},{n:F.G4,d:2},
+    {n:F.A4,d:2},{n:F.B4,d:2},{n:F.C5,d:1},{n:F.B4,d:1},{n:F.A4,d:2},
+    {n:F.G4,d:1},{n:F.E4,d:1},{n:F.G4,d:2},
+  ], chords:[{ns:[F.E3,F.G3,F.B3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.E3,F.G3,F.B3],s:14,d:6}],
+     bass:[{n:F.E3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.E3,s:14,d:6}] },
+];
 
 function stopTune() {
   tuneGen++;
-  if (tuneTimeout) { clearTimeout(tuneTimeout); tuneTimeout = null; }
+  if (tuneInterval) { clearTimeout(tuneInterval); tuneInterval = null; }
+  if (tuneStopTimer) { clearTimeout(tuneStopTimer); tuneStopTimer = null; }
   if (masterGain) {
     const ctx = getAudioCtx();
     const oldMaster = masterGain;
@@ -976,12 +866,12 @@ function stopTune() {
     activeSources = [];
     try {
       oldMaster.gain.setValueAtTime(oldMaster.gain.value, ctx.currentTime);
-      oldMaster.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
+      oldMaster.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
     } catch(e){}
     setTimeout(() => {
       oldSources.forEach(s => { try { s.stop(); } catch(e){} });
       try { oldMaster.disconnect(); } catch(e){}
-    }, 1200);
+    }, 700);
   }
 }
 
@@ -989,90 +879,69 @@ function playTune(colorIdx, durLevel) {
   stopTune();
 
   const ctx = getAudioCtx();
-  const score = buildScore(colorIdx);
+  const comp = compositions[colorIdx];
   const myGen = ++tuneGen;
+  const tuneStart = Date.now();
 
-  // Master gain
   masterGain = ctx.createGain();
-  masterGain.gain.value = 0.7;
+  masterGain.gain.value = 0.75;
   masterGain.connect(ctx.destination);
 
-  // Hall reverb via parallel delays (concert hall simulation)
-  const delays = [0.11, 0.23, 0.37, 0.53];
-  const dGains = [0.16, 0.12, 0.09, 0.06];
-  delays.forEach((dt, i) => {
-    const dl = ctx.createDelay(); dl.delayTime.value = dt;
-    const dg = ctx.createGain(); dg.gain.value = dGains[i];
-    dl.connect(dg); dg.connect(masterGain);
-    activeSources._dlNodes = activeSources._dlNodes || [];
-    activeSources._dlNodes.push(dl);
-  });
+  // Reverb via parallel delays
+  const dl1 = ctx.createDelay(); dl1.delayTime.value = 0.12;
+  const dl2 = ctx.createDelay(); dl2.delayTime.value = 0.24;
+  const dl3 = ctx.createDelay(); dl3.delayTime.value = 0.37;
+  const dg1 = ctx.createGain(); dg1.gain.value = 0.18;
+  const dg2 = ctx.createGain(); dg2.gain.value = 0.12;
+  const dg3 = ctx.createGain(); dg3.gain.value = 0.08;
+  dl1.connect(dg1); dg1.connect(masterGain);
+  dl2.connect(dg2); dg2.connect(masterGain);
+  dl3.connect(dg3); dg3.connect(masterGain);
 
-  // Reverb bus
   const reverbBus = ctx.createGain();
   reverbBus.gain.value = 1;
   reverbBus.connect(masterGain);
-  (activeSources._dlNodes || []).forEach(dl => reverbBus.connect(dl));
+  reverbBus.connect(dl1); reverbBus.connect(dl2); reverbBus.connect(dl3);
 
-  const beatSec = 60 / score.bpm;
-  let currentBeat = 0;
-  const now = ctx.currentTime;
+  const beatSec = 60 / comp.bpm;
+  let totalBeats = 0;
+  comp.mel.forEach(m => totalBeats += m.d);
+  const phraseLen = totalBeats * beatSec;
 
-  // Dynamic volume based on durLevel: quick=softer, deep=fuller
-  const dynVol = [0.8, 1.0, 1.15][durLevel];
+  function playOnePhrase() {
+    if (myGen !== tuneGen || !masterGain) return;
+    // Stop after 30 seconds
+    if (Date.now() - tuneStart >= 28000) {
+      stopTune();
+      return;
+    }
+    const now = ctx.currentTime;
 
-  // Schedule all 4 phrases (opening, development, climax, resolution)
-  score.phrases.forEach((phrase, pi) => {
-    const isClimax = (pi === 2);
-    const isResolution = (pi === 3);
-    const melVol = (isClimax ? 0.35 : isResolution ? 0.22 : 0.28) * dynVol;
-    const padVol = (isClimax ? 0.08 : 0.06) * dynVol;
-    const brassVol = (isClimax ? 0.14 : 0.09) * dynVol;
-
-    // Melody
-    let melBeat = currentBeat;
-    phrase.mel.forEach(note => {
-      const t0 = now + melBeat * beatSec;
+    let beatPos = 0;
+    comp.mel.forEach(note => {
+      const t0 = now + beatPos * beatSec;
       const dur = note.d * beatSec;
-      if (note.n > 0) orchNote(ctx, note.n, t0, dur * 0.93, reverbBus, melVol);
-      melBeat += note.d;
+      if (note.n > 0) playNote(ctx, note.n, t0, dur * 0.92, reverbBus, 0.38);
+      beatPos += note.d;
     });
 
-    // String pads
-    let strBeat = currentBeat;
-    phrase.str.forEach(ch => {
-      orchPad(ctx, ch.ns, now + strBeat * beatSec, ch.d * beatSec, reverbBus, padVol);
-      strBeat += ch.d;
+    comp.chords.forEach(ch => {
+      playPad(ctx, ch.ns, now + ch.s * beatSec, ch.d * beatSec, reverbBus);
     });
 
-    // Bass
-    let bassBeat = currentBeat;
-    phrase.bass.forEach(b => {
-      orchBass(ctx, b.n, now + bassBeat * beatSec, b.d * beatSec, reverbBus);
-      bassBeat += b.d;
+    comp.bass.forEach(b => {
+      playBass(ctx, b.n, now + b.s * beatSec, b.d * beatSec, reverbBus);
     });
 
-    // Brass (at specific offsets within phrase)
-    (phrase.br || []).forEach(b => {
-      orchBrass(ctx, b.n, now + (currentBeat + b.off) * beatSec, b.d * beatSec, reverbBus, brassVol);
-    });
+    tuneInterval = setTimeout(playOnePhrase, (phraseLen + 0.8) * 1000);
+  }
 
-    // Advance beat position by melody length + 1 beat gap
-    let phraseBeats = 0;
-    phrase.mel.forEach(n => phraseBeats += n.d);
-    currentBeat += phraseBeats + 1;
-  });
+  playOnePhrase();
 
-  // Fade out master gain starting at 28s, fully silent by 30s
-  const fadeStart = now + 28;
-  const fadeEnd = now + 30;
-  masterGain.gain.setValueAtTime(0.7, fadeStart);
-  masterGain.gain.linearRampToValueAtTime(0, fadeEnd);
-
-  // Auto-stop at 30s
-  tuneTimeout = setTimeout(() => {
+  // Hard stop at 30s as safety net
+  tuneStopTimer = setTimeout(() => {
     if (myGen === tuneGen) stopTune();
-  }, 30500);
+  }, 30000);
 }
 
 // Darker shade helper for 3D extrusion sides
