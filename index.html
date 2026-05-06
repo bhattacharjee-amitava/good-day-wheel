@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#1a1a2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Good Day! - Spin the Wheel</title>
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZCBEYXkhIiwic2hvcnRfbmFtZSI6Ikdvb2REYXkiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFhMWEyZSIsInRoZW1lX2NvbG9yIjoiIzFhMWEyZSIsImljb25zIjpbXX0=">
+<title>Magic Wheel! ✨</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTWFnaWMgV2hlZWwhIiwic2hvcnRfbmFtZSI6Ik1hZ2ljV2hlZWwiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFhMWEyZSIsInRoZW1lX2NvbG9yIjoiIzFhMWEyZSIsImljb25zIjpbXX0=">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500&display=swap');
 
@@ -24,8 +24,9 @@
   }
 
   .title {
-    color: #e0e0ff; font-size: 1.1rem; letter-spacing: 2px;
-    text-transform: uppercase; margin-bottom: 18px; opacity: 0.7;
+    color: #e0e0ff; font-size: clamp(0.72rem, 3.2vw, 1.05rem); letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 18px; opacity: 0.85;
+    white-space: nowrap;
   }
 
   .wheel-container {
@@ -49,7 +50,7 @@
   .center-text {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    color: #fff; font-size: clamp(1rem, 4vw, 1.45rem); font-weight: 700;
+    color: #fff; font-size: clamp(1rem, 4vw, 1.3rem); font-weight: 700;
     text-shadow: 0 2px 8px rgba(0,0,0,0.7);
     pointer-events: none; white-space: nowrap;
     letter-spacing: 1px;
@@ -73,7 +74,7 @@
     transition: width 0.08s linear;
   }
 
-  /* ── Elevated Quote Overlay ── */
+  /* ── Overlay ── */
   .overlay {
     position: fixed; inset: 0;
     background: radial-gradient(ellipse at center, rgba(15,15,35,0.92), rgba(5,5,15,0.98));
@@ -85,7 +86,7 @@
   }
   .overlay.show { opacity: 1; pointer-events: auto; }
 
-  /* 3D elevated card — looks like floating above the phone */
+  /* 3D floating card */
   .quote-card {
     position: relative;
     max-width: 350px; width: 92%; text-align: center;
@@ -102,7 +103,6 @@
     transition: transform 0.8s cubic-bezier(.16,.87,.35,1.15),
                 box-shadow 0.8s cubic-bezier(.16,.87,.35,1.15);
     transform-style: preserve-3d;
-    /* Layered shadows for floating depth */
     box-shadow:
       0 1px 2px rgba(0,0,0,0.15),
       0 4px 8px rgba(0,0,0,0.15),
@@ -128,23 +128,20 @@
     height: 60%; border-radius: 50%;
     background: var(--glow-color, rgba(130,100,255,0.25));
     filter: blur(30px);
-    opacity: 0;
-    transition: opacity 0.8s;
-    z-index: -1;
+    opacity: 0; transition: opacity 0.8s; z-index: -1;
   }
   .overlay.show .quote-card::before { opacity: 1; }
 
-  /* Subtle top-edge highlight */
+  /* Top-edge highlight */
   .quote-card::after {
     content: '';
-    position: absolute; top: 0; left: 20px; right: 20px;
-    height: 1px;
+    position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
     border-radius: 1px;
   }
 
   .quote-icon {
-    font-size: 1.8rem; margin-bottom: 6px;
+    font-size: 2rem; margin-bottom: 4px;
     filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
     animation: floatIcon 3s ease-in-out infinite;
   }
@@ -153,26 +150,21 @@
     50% { transform: translateY(-6px); }
   }
 
-  /* ── 3D Extruded Block-Letter Quote Text ── */
+  /* ── 3D Extruded Quote Text ── */
   .quote-text {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.05rem; line-height: 1.7;
     font-style: italic; font-weight: 700;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-    /* 3D block extrusion: stacked pixel-offset shadows creating depth */
+    margin-bottom: 10px; letter-spacing: 0.5px;
     color: var(--text-front, #b8d4f0);
     text-shadow:
-      /* top highlight */
       0 -1px 0 var(--text-top, rgba(232,244,255,0.5)),
-      /* extrusion layers (bottom-right diagonal depth) */
       1px 1px 0 var(--text-side-r, rgba(26,95,168,0.9)),
       2px 2px 0 var(--text-side-r, rgba(26,95,168,0.85)),
       3px 3px 0 var(--text-side-r, rgba(26,95,168,0.8)),
       4px 4px 0 var(--text-side-r, rgba(26,95,168,0.75)),
       5px 5px 0 var(--text-side-r, rgba(26,95,168,0.7)),
       6px 6px 0 var(--text-side-r, rgba(26,95,168,0.6)),
-      /* soft shadow underneath the 3D block */
       6px 6px 4px rgba(0,0,0,0.3),
       8px 10px 10px rgba(0,0,0,0.25),
       10px 14px 20px rgba(0,0,0,0.2),
@@ -181,17 +173,12 @@
 
   .quote-text .first-word {
     font-weight: 900; font-style: normal;
-    font-size: 1.55rem;
-    letter-spacing: 1px;
-    /* First word: uses pressed color with matching 3D depth */
+    font-size: 1.55rem; letter-spacing: 1px;
     color: var(--fw-front);
     text-shadow:
-      /* top highlight */
       0 -1px 0 var(--fw-top, rgba(255,255,255,0.4)),
-      /* color glow */
       0 0 10px var(--fw-glow, currentColor),
       0 0 25px var(--fw-glow, currentColor),
-      /* extrusion layers */
       1px 1px 0 var(--fw-side),
       2px 2px 0 var(--fw-side),
       3px 3px 0 var(--fw-side),
@@ -199,13 +186,12 @@
       5px 5px 0 var(--fw-side),
       6px 6px 0 var(--fw-side),
       7px 7px 0 var(--fw-side),
-      /* drop shadow */
       7px 7px 5px rgba(0,0,0,0.35),
       9px 12px 12px rgba(0,0,0,0.25),
       12px 16px 24px rgba(0,0,0,0.2);
   }
 
-  /* Color + duration info */
+  /* Color + duration chips */
   .color-dur-info {
     display: flex; justify-content: center; gap: 12px;
     margin-bottom: 8px;
@@ -223,10 +209,9 @@
     display: inline-block; flex-shrink: 0;
   }
 
-  /* Personality insight section */
+  /* Power section */
   .personality-section {
-    margin-top: 6px;
-    padding-top: 10px;
+    margin-top: 6px; padding-top: 10px;
     border-top: 1px solid rgba(255,255,255,0.06);
   }
   .personality-label {
@@ -234,10 +219,17 @@
     letter-spacing: 2px; color: rgba(255,255,255,0.3);
     margin-bottom: 4px;
   }
-  .personality-trait {
+  /* Power name badge */
+  .power-name {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 0.85rem; font-weight: 700;
-    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+  }
+  .personality-trait {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.85);
     line-height: 1.5;
     cursor: pointer;
     padding: 6px 12px;
@@ -246,16 +238,14 @@
     border: 1px dashed rgba(255,255,255,0.12);
     transition: background 0.3s;
   }
-  .personality-trait:active {
-    background: rgba(255,255,255,0.1);
-  }
+  .personality-trait:active { background: rgba(255,255,255,0.1); }
   .tap-hint {
     font-size: 0.5rem; color: rgba(255,255,255,0.25);
     margin-top: 3px; letter-spacing: 1px;
     text-transform: uppercase;
   }
 
-  /* OCEAN popup modal */
+  /* Power Meter modal */
   .ocean-modal {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.75);
@@ -274,19 +264,18 @@
   .ocean-close {
     position: absolute; top: 8px; right: 10px;
     background: none; border: none; color: rgba(255,255,255,0.5);
-    font-size: 1.2rem; cursor: pointer; padding: 4px 8px;
-    line-height: 1;
+    font-size: 1.4rem; cursor: pointer; padding: 4px 8px; line-height: 1;
   }
   .ocean-close:active { color: #fff; }
   .ocean-title {
-    font-size: 0.6rem; text-transform: uppercase;
-    letter-spacing: 2px; color: rgba(255,255,255,0.35);
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 2px; color: rgba(255,255,255,0.4);
     margin-bottom: 14px; text-align: center;
   }
   .ocean-bars { display: flex; flex-direction: column; gap: 8px; }
   .ocean-row { display: flex; align-items: center; gap: 8px; }
   .ocean-lbl {
-    font-size: 0.65rem; width: 95px; text-align: right;
+    font-size: 0.65rem; width: 90px; text-align: right;
     color: rgba(200,200,230,0.65); flex-shrink: 0;
   }
   .ocean-track {
@@ -298,15 +287,11 @@
     transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
     width: 0%;
   }
-  .ocean-pct {
-    font-size: 0.6rem; width: 30px;
-    color: rgba(200,200,230,0.5);
-  }
+  .ocean-pct { font-size: 0.6rem; width: 30px; color: rgba(200,200,230,0.5); }
 
-  /* History event section */
+  /* History section */
   .history-section {
-    margin-top: 4px;
-    padding-top: 8px;
+    margin-top: 4px; padding-top: 8px;
     border-top: 1px solid rgba(255,255,255,0.06);
   }
   .history-label {
@@ -316,8 +301,7 @@
   }
   .history-text {
     font-size: 0.72rem; line-height: 1.45;
-    color: rgba(200,200,230,0.7);
-    font-style: italic;
+    color: rgba(200,200,230,0.7); font-style: italic;
   }
   .history-year {
     font-weight: 700; font-style: normal;
@@ -328,8 +312,7 @@
     margin-top: 12px; padding: 10px 28px;
     background: linear-gradient(135deg, #6c63ff, #e040fb);
     color: #fff; border: none; border-radius: 28px;
-    font-size: 0.92rem; cursor: pointer;
-    letter-spacing: 1px;
+    font-size: 0.95rem; cursor: pointer; letter-spacing: 1px;
     box-shadow:
       0 4px 15px rgba(108,99,255,0.4),
       0 8px 30px rgba(108,99,255,0.2);
@@ -343,57 +326,58 @@
 </head>
 <body>
 
-<div class="title">&#10024; Select Your Favorite Color! &#10024;</div>
+<div class="title">&#10024; Pick Your Magic Color! &#10024;</div>
 
 <div class="wheel-container" id="wheelContainer">
   <canvas id="wheel" width="600" height="600"></canvas>
-  <div class="center-text">Good Day!</div>
+  <div class="center-text">Magic Wheel!</div>
 </div>
 
-<div class="hint" id="hint">Press &amp; hold any color on the wheel!</div>
+<div class="hint" id="hint">Press &amp; hold your favorite color!</div>
 <div class="dur-bar-wrap" id="durWrap">
   <div class="dur-bar" id="durBar"></div>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="quote-card" id="quoteCard">
-    <div class="quote-icon" id="quoteIcon">&#127775;</div>
+    <div class="quote-icon" id="quoteIcon">&#11088;</div>
     <div class="quote-text" id="quoteText"></div>
     <div class="color-dur-info" id="colorDurInfo"></div>
     <div class="personality-section">
-      <div class="personality-label">Personality insight</div>
+      <div class="personality-label">&#9889; Your Magic Power</div>
+      <div class="power-name" id="powerName"></div>
       <div class="personality-trait" id="personalityTrait"></div>
-      <div class="tap-hint">tap to see detailed analysis</div>
+      <div class="tap-hint">tap to see your power meter &#9889;</div>
     </div>
     <div class="history-section">
-      <div class="history-label">On this day</div>
+      <div class="history-label">&#128218; Cool History Fact!</div>
       <div class="history-text" id="historyText"></div>
     </div>
-    <button class="btn-close" id="btnClose">&#10024; Try Again</button>
+    <button class="btn-close" id="btnClose">&#127881; Play Again!</button>
   </div>
 </div>
 
 <div class="ocean-modal" id="oceanModal">
   <div class="ocean-body">
     <button class="ocean-close" id="oceanClose">&times;</button>
-    <div class="ocean-title">Personality Profile (OCEAN)</div>
+    <div class="ocean-title">&#9889; Your Power Meter &#9889;</div>
     <div class="ocean-bars" id="oceanBars"></div>
   </div>
 </div>
 
 <script>
-// ── VIBGYOR Wheel Drawing ──
+// ── VIBGYOR Wheel ──
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, R = W/2 - 10;
 
 const VIBGYOR = [
-  '#9400D3', '#4B0082', '#0000FF', '#00FF00',
-  '#FFFF00', '#FF7F00', '#FF0000',
+  '#9400D3','#4B0082','#0000FF','#00FF00',
+  '#FFFF00','#FF7F00','#FF0000',
 ];
 const VIBGYOR_BRIGHT = [
-  '#BF5FFF', '#7B68EE', '#5599FF', '#50FF50',
-  '#FFE940', '#FFA040', '#FF4545',
+  '#BF5FFF','#7B68EE','#5599FF','#50FF50',
+  '#FFE940','#FFA040','#FF4545',
 ];
 
 let rotation = 0;
@@ -404,80 +388,43 @@ function drawWheel(rot) {
   VIBGYOR.forEach((color, i) => {
     const start = rot + i * sliceAngle;
     const end = start + sliceAngle;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, R, start, end);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, start, end); ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 2; ctx.stroke();
   });
   ctx.beginPath();
   ctx.arc(cx, cy, R * 0.32, 0, 2 * Math.PI);
-  ctx.fillStyle = '#0d0d1a';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  ctx.fillStyle = '#0d0d1a'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 }
 drawWheel(0);
 
 let idleAnim = null;
 function idleSpin() {
-  rotation += 0.004;
-  drawWheel(rotation);
+  rotation += 0.004; drawWheel(rotation);
   idleAnim = requestAnimationFrame(idleSpin);
 }
 idleSpin();
 
-// ── Color + Duration Quote Engine ──
-const colorNames = ['Violet', 'Indigo', 'Blue', 'Green', 'Yellow', 'Orange', 'Red'];
-const colorIcons = ['🔮', '🌌', '🌊', '🌿', '☀️', '🔥', '❤️'];
+// ── Color info ──
+const colorNames = ['Violet','Indigo','Blue','Green','Yellow','Orange','Red'];
+const colorIcons = ['🔮','🌌','🌊','🌿','☀️','🔥','❤️'];
 
-// ── Multi-Signal Personality Prediction Algorithm ──
-// Based on: "Predicting personality from patterns of behavior" (PNAS 2020),
-// Roy et al. 2018 (touch-duration → traits), and
-// "Exploring relationships between personality and color preferences" (Frontiers 2022).
-//
-// Maps color preference + press duration → Big Five personality profile:
-//   O = Openness, C = Conscientiousness, E = Extraversion,
-//   A = Agreeableness, N = Neuroticism (inverse = Emotional Stability)
-//
-// Color signal weights (from Frontiers 2022 color-personality correlations):
-//   Each color biases certain Big Five dimensions.
-// Duration signal (from Roy 2018, Nature 2019 keystroke dynamics):
-//   Short press → impulsive/extraverted, Long press → deliberate/conscientious
-
-// Color-based Big Five weight profiles [O, C, E, A, N(inv)]
-// Each row sums to a personality "fingerprint" for that color preference
+// ── Personality Algorithm (OCEAN — hidden from kids) ──
 const colorTraits = [
-  // Violet — imaginative, introspective, spiritual
-  { O: 0.90, C: 0.45, E: 0.30, A: 0.60, S: 0.50 },
-  // Indigo — analytical, wise, independent
-  { O: 0.80, C: 0.75, E: 0.25, A: 0.50, S: 0.65 },
-  // Blue — calm, loyal, trustworthy
-  { O: 0.55, C: 0.70, E: 0.40, A: 0.85, S: 0.75 },
-  // Green — nurturing, balanced, growth-oriented
-  { O: 0.65, C: 0.60, E: 0.55, A: 0.90, S: 0.70 },
-  // Yellow — optimistic, energetic, intellectual
-  { O: 0.70, C: 0.50, E: 0.90, A: 0.65, S: 0.55 },
-  // Orange — adventurous, creative, enthusiastic
-  { O: 0.85, C: 0.35, E: 0.85, A: 0.55, S: 0.45 },
-  // Red — passionate, decisive, bold
-  { O: 0.60, C: 0.55, E: 0.80, A: 0.40, S: 0.35 },
+  { O:0.90, C:0.45, E:0.30, A:0.60, S:0.50 }, // Violet
+  { O:0.80, C:0.75, E:0.25, A:0.50, S:0.65 }, // Indigo
+  { O:0.55, C:0.70, E:0.40, A:0.85, S:0.75 }, // Blue
+  { O:0.65, C:0.60, E:0.55, A:0.90, S:0.70 }, // Green
+  { O:0.70, C:0.50, E:0.90, A:0.65, S:0.55 }, // Yellow
+  { O:0.85, C:0.35, E:0.85, A:0.55, S:0.45 }, // Orange
+  { O:0.60, C:0.55, E:0.80, A:0.40, S:0.35 }, // Red
 ];
-
-// Duration modifier: short press amplifies E, long press amplifies C & S
-// durLevel: 0 = quick (<1s), 1 = moderate (1-2.5s), 2 = deep (>2.5s)
 const durModifiers = [
-  // Quick press — spontaneous, impulsive, high energy
-  { O: 0.00, C: -0.15, E: 0.20, A: -0.05, S: -0.10 },
-  // Moderate press — balanced, thoughtful engagement
-  { O: 0.05, C: 0.10, E: 0.00, A: 0.10, S: 0.05 },
-  // Deep press — deliberate, patient, reflective
-  { O: 0.10, C: 0.20, E: -0.15, A: 0.05, S: 0.15 },
+  { O:0.00, C:-0.15, E:0.20, A:-0.05, S:-0.10 }, // Quick
+  { O:0.05, C:0.10,  E:0.00, A:0.10,  S:0.05  }, // Moderate
+  { O:0.10, C:0.20,  E:-0.15,A:0.05,  S:0.15  }, // Deep
 ];
 
 function computePersonality(colorIdx, durLevel) {
@@ -491,67 +438,74 @@ function computePersonality(colorIdx, durLevel) {
     A: clamp(base.A + mod.A),
     S: clamp(base.S + mod.S),
   };
-  // Find dominant and secondary traits
-  const labels = {
-    O: 'Openness', C: 'Conscientiousness',
-    E: 'Extraversion', A: 'Agreeableness', S: 'Emotional Stability'
-  };
-  const sorted = Object.entries(profile).sort((a, b) => b[1] - a[1]);
-  return {
-    scores: profile,
-    dominant: { key: sorted[0][0], label: labels[sorted[0][0]], value: sorted[0][1] },
-    secondary: { key: sorted[1][0], label: labels[sorted[1][0]], value: sorted[1][1] },
-    sorted: sorted.map(([k, v]) => ({ key: k, label: labels[k], value: v })),
-  };
+  const sorted = Object.entries(profile)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => ({ key: k, value: v }));
+  return { scores: profile, dominant: sorted[0], sorted };
 }
 
-// ── Dominant trait characterization (human-readable, no scores) ──
-// Passive, personified narratives — no "you" language
-const traitCharacterizations = {
-  O: 'An open, curious mind — drawn to new ideas, creative expression, and unconventional paths. A natural explorer of both the inner world and the outer one.',
-  C: 'A disciplined, organized spirit — detail-oriented, dependable, and quietly relentless. The kind of presence that builds cathedrals one careful stone at a time.',
-  E: 'A magnetic, outgoing energy — thriving on connection, conversation, and shared experiences. A room shifts when this personality walks in.',
-  A: 'A warm, compassionate heart — instinctively kind, deeply empathetic, and always the first to extend a hand. Trust grows naturally in this presence.',
-  S: 'A calm, grounded soul — emotionally steady, resilient under pressure, and unfazed by chaos. The eye of every storm, radiating quiet strength.',
+// ── Magic Powers (kids-friendly names for OCEAN traits) ──
+const powerNames = {
+  O: '🔭 The Explorer',
+  C: '🏆 The Builder',
+  E: '⭐ The Shining Star',
+  A: '💝 The Helper',
+  S: '🌊 The Calm Hero',
 };
 
-// Trait-aligned quotes (3 variants per trait for durLevel variety)
-const traitQuotes = {
+// Power descriptions — fun, active, encouraging
+const powerDescriptions = {
+  O: 'A mind bursting with big ideas and wild adventures! Always curious, always asking "what if?" — and finding magic where others don\'t even look!',
+  C: 'Super focused and never gives up! The kind of friend who always finishes what they start — and does it brilliantly. True champion energy!',
+  E: 'Makes everyone smile and lights up every room! Loves friends, fun, and laughter — the world is simply more exciting with this star in it!',
+  A: 'The kindest heart around! Always ready to share, care, and make others feel truly special. Kindness like this is pure magic!',
+  S: 'Cool and steady even when things get wild! The friend everyone counts on when life gets bumpy. Real heroes stay calm!',
+};
+
+// Power cheers — fun encouragements (3 variants per durLevel)
+const powerCheers = {
   O: [
-    'Imagination paints worlds others have yet to dream — the brush never stops moving.',
-    'Curiosity is the compass that always points toward something extraordinary.',
-    'Beauty hides where others see the ordinary — and creative eyes never miss it.',
+    'Keep asking questions — the world is full of surprises waiting to be found!',
+    'Big ideas start with curious minds — and yours might just be the biggest of all!',
+    'Every great explorer finds something amazing. Go discover yours!',
   ],
   C: [
-    'Discipline is not a cage — it is the architecture of the greatest achievements.',
-    'While others wish, steady hands build. Quiet persistence shapes what the world needs most.',
-    'Patience and precision are rare gifts — carried here with effortless grace.',
+    'Every big dream is built one step at a time — and you\'ve already started!',
+    'Champions don\'t quit — and neither do you! Keep on building!',
+    'The best builders make the world a better place. That\'s totally you!',
   ],
   E: [
-    'Energy like this is magnetic — rooms light up and hearts ignite without effort.',
-    'Connection is the superpower. People bloom in the warmth of this presence.',
-    'The world expands every time bold spirits step into it — and keep showing up.',
+    'Your smile is your superpower — share it everywhere you go!',
+    'The world is brighter because you\'re in it. Keep shining, star!',
+    'Stars don\'t hide their light — and neither should you. Shine on!',
   ],
   A: [
-    'Kindness is not weakness — it is the strongest force the universe has ever known.',
-    'Empathy carried like a lantern guides others through their darkest corridors.',
-    'In a world rushing past, a gentle heart is the anchor everyone secretly needs.',
+    'Kindness is the most powerful magic there is — and you\'ve got loads of it!',
+    'Every act of kindness creates a ripple that goes on and on forever!',
+    'The world needs more helpers like you. You are truly amazing!',
   ],
   S: [
-    'Calm is not silence — it is the deep hum of a mind that has mastered the storm.',
-    'Inner peace radiates outward, touching everyone who crosses the path.',
-    'While the world trembles, stillness stands firm — and that stillness moves mountains.',
+    'Being steady and calm is a real superpower — the world needs heroes like you!',
+    'When everything feels wobbly, calm heroes save the day. That\'s you!',
+    'Take a deep breath — you\'ve totally got this, Calm Hero!',
   ],
 };
 
-// OCEAN bar colors
-const oceanColors = {
+// Power Meter bar colors (same as adult version)
+const powerColors = {
   O: '#a78bfa', C: '#60a5fa', E: '#fbbf24', A: '#34d399', S: '#f472b6'
 };
 
-// ── "On This Day" — Live from Wikipedia API ──
-// Fetches real events for today's date; falls back to verified historical facts
+// Power Meter friendly labels (shown in popup)
+const powerMeterLabels = {
+  O: '🔭 Explorer',
+  C: '🏆 Builder',
+  E: '⭐ Star Power',
+  A: '💝 Helper',
+  S: '🌊 Calm Hero',
+};
 
+// ── On This Day (Wikipedia API + fallback) ──
 const fallbackEvents = [
   {y:'1969',t:'Apollo 11 astronauts became the first humans to walk on the Moon.'},
   {y:'1989',t:'The Berlin Wall fell, reuniting East and West Germany after 28 years.'},
@@ -576,7 +530,7 @@ const fallbackEvents = [
   {y:'1687',t:'Isaac Newton published the Principia, laying the foundation of classical physics.'}
 ];
 
-let todayEvents = []; // filled async on load
+let todayEvents = [];
 
 async function fetchTodayEvents() {
   try {
@@ -591,17 +545,12 @@ async function fetchTodayEvents() {
       .filter(e => e.year && e.text)
       .map(e => ({ y: e.year, t: e.text }))
       .slice(0, 50);
-    // Shuffle
     for (let i = events.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [events[i], events[j]] = [events[j], events[i]];
     }
     todayEvents = events.slice(0, 21);
-    while (todayEvents.length < 21 && todayEvents.length > 0) {
-      todayEvents.push(todayEvents[todayEvents.length % events.length]);
-    }
   } catch (err) {
-    // Offline fallback — use verified historical facts, shuffled
     const fb = fallbackEvents.slice();
     for (let i = fb.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -610,11 +559,9 @@ async function fetchTodayEvents() {
     todayEvents = fb;
   }
 }
-
-// Fire the fetch immediately on load
 fetchTodayEvents();
 
-// ── Detect which color slice was pressed ──
+// ── Color detection ──
 function getColorIndex(clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   const x = (clientX - rect.left) / rect.width * W - cx;
@@ -627,13 +574,10 @@ function getColorIndex(clientX, clientY) {
   return Math.floor(angle / sliceAngle);
 }
 
-// ── Duration-based Press Detection ──
+// ── Press detection ──
 const MAX_DURATION = 4000;
-let pressStart = 0;
-let pressTimer = null;
-let pressing = false;
-let spinAnim = null;
-let pressedColorIdx = 0;
+let pressStart = 0, pressTimer = null, pressing = false;
+let spinAnim = null, pressedColorIdx = 0;
 
 const container = document.getElementById('wheelContainer');
 const durWrap = document.getElementById('durWrap');
@@ -642,23 +586,15 @@ const hint = document.getElementById('hint');
 
 function onPressStart(e) {
   if (pressing) return;
-  pressing = true;
-  pressStart = Date.now();
-  durWrap.classList.add('active');
-  durBar.style.width = '0%';
-
+  pressing = true; pressStart = Date.now();
+  durWrap.classList.add('active'); durBar.style.width = '0%';
   let px, py;
-  if (e.touches && e.touches[0]) {
-    px = e.touches[0].clientX; py = e.touches[0].clientY;
-  } else {
-    px = e.clientX; py = e.clientY;
-  }
+  if (e.touches && e.touches[0]) { px = e.touches[0].clientX; py = e.touches[0].clientY; }
+  else { px = e.clientX; py = e.clientY; }
   pressedColorIdx = getColorIndex(px, py);
   if (pressedColorIdx < 0) pressedColorIdx = Math.floor(Math.random() * 7);
-
   durBar.style.background = VIBGYOR_BRIGHT[pressedColorIdx];
   hint.textContent = 'Keep holding... ' + colorNames[pressedColorIdx] + '!';
-
   pressTimer = setInterval(() => {
     const elapsed = Date.now() - pressStart;
     const pct = Math.min(elapsed / MAX_DURATION, 1) * 100;
@@ -669,16 +605,10 @@ function onPressStart(e) {
 
 function onPressEnd() {
   if (!pressing) return;
-  pressing = false;
-  clearInterval(pressTimer);
+  pressing = false; clearInterval(pressTimer);
   durWrap.classList.remove('active');
-
   const elapsed = Date.now() - pressStart;
-  if (elapsed < 200) {
-    hint.textContent = 'Press & hold any color on the wheel!';
-    return;
-  }
-
+  if (elapsed < 200) { hint.textContent = 'Press & hold your favorite color!'; return; }
   const durLevel = elapsed < 1000 ? 0 : elapsed < 2500 ? 1 : 2;
   const normalizedDur = Math.min(elapsed / MAX_DURATION, 1);
   const elapsedSec = (elapsed / 1000).toFixed(1);
@@ -689,35 +619,23 @@ function triggerSpin(colorIdx, durLevel, normalizedDur, elapsedSec) {
   hint.textContent = '';
   cancelAnimationFrame(idleAnim);
   if (spinAnim) cancelAnimationFrame(spinAnim);
-
   const spinDuration = 1500 + normalizedDur * 1500;
   const totalRotation = 4 + normalizedDur * 8;
-  const startRot = rotation;
-  const startTime = performance.now();
-
+  const startRot = rotation, startTime = performance.now();
   function animateSpin(now) {
     const t = Math.min((now - startTime) / spinDuration, 1);
     const ease = 1 - Math.pow(1 - t, 3);
     rotation = startRot + totalRotation * ease * Math.PI * 2;
     drawWheel(rotation);
-    if (t < 1) {
-      spinAnim = requestAnimationFrame(animateSpin);
-    } else {
-      setTimeout(() => showQuote(colorIdx, durLevel, elapsedSec), 300);
-    }
+    if (t < 1) { spinAnim = requestAnimationFrame(animateSpin); }
+    else { setTimeout(() => showQuote(colorIdx, durLevel, elapsedSec), 300); }
   }
   spinAnim = requestAnimationFrame(animateSpin);
 }
 
-// ── Melodious Tune Engine (Web Audio API) ──
-// Rich, warm, music-box-like tones with proper musical composition
-// Plays for 30 seconds then stops — no looping
-let audioCtx = null;
-let tuneInterval = null;
-let tuneStopTimer = null;
-let activeSources = [];
-let masterGain = null;
-let tuneGen = 0;
+// ── Music Engine (warm tones, 30 sec, no loop) ──
+let audioCtx = null, tuneInterval = null, tuneStopTimer = null;
+let activeSources = [], masterGain = null, tuneGen = 0;
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -725,22 +643,18 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-// ── Warm instrument: layered sine+triangle with gentle overtones ──
 function playNote(ctx, freq, startT, dur, dest, vol) {
   const o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = freq;
   const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq * 2;
   const o3 = ctx.createOscillator(); o3.type = 'sine'; o3.frequency.value = freq * 3;
   const g1 = ctx.createGain(), g2 = ctx.createGain(), g3 = ctx.createGain();
-
   const vib = ctx.createOscillator(); vib.frequency.value = 4.5;
   const vibG = ctx.createGain(); vibG.gain.value = freq * 0.004;
   vib.connect(vibG); vibG.connect(o1.frequency); vibG.connect(o2.frequency);
-
   const attack = Math.min(dur * 0.15, 0.12);
   const release = Math.min(dur * 0.4, 0.5);
   const sustain = dur - attack - release;
   const peakVol = vol || 0.35;
-
   [g1, g2, g3].forEach((g, idx) => {
     const v = idx === 0 ? peakVol : idx === 1 ? peakVol * 0.15 : peakVol * 0.06;
     g.gain.setValueAtTime(0, startT);
@@ -748,7 +662,6 @@ function playNote(ctx, freq, startT, dur, dest, vol) {
     g.gain.setValueAtTime(v * 0.85, startT + attack + sustain);
     g.gain.linearRampToValueAtTime(0, startT + dur);
   });
-
   o1.connect(g1); g1.connect(dest);
   o2.connect(g2); g2.connect(dest);
   o3.connect(g3); g3.connect(dest);
@@ -756,7 +669,6 @@ function playNote(ctx, freq, startT, dur, dest, vol) {
   activeSources.push(o1,o2,o3,vib);
 }
 
-// ── Warm pad chord ──
 function playPad(ctx, freqs, startT, dur, dest) {
   freqs.forEach(freq => {
     const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
@@ -768,7 +680,6 @@ function playPad(ctx, freqs, startT, dur, dest) {
     o.connect(g); g.connect(dest);
     o.start(startT); o.stop(startT + dur + 0.1);
     activeSources.push(o);
-
     const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 1.003;
     const g2 = ctx.createGain();
     g2.gain.setValueAtTime(0, startT);
@@ -780,7 +691,6 @@ function playPad(ctx, freqs, startT, dur, dest) {
   });
 }
 
-// ── Soft bass note ──
 function playBass(ctx, freq, startT, dur, dest) {
   const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
   const g = ctx.createGain();
@@ -801,57 +711,28 @@ const F = {
   A5:880,B5:987.77,C6:1046.50
 };
 
-// 7 compositions — one per color (used for all durLevels)
 const compositions = [
-  // Violet: Dreamy (C major pentatonic)
-  { bpm:66, mel:[
-    {n:F.C5,d:3},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.E4,d:2},
-    {n:F.G4,d:3},{n:F.A4,d:1},{n:F.C5,d:2},{n:F.D5,d:2},
-    {n:F.C5,d:4},
-  ], chords:[{ns:[F.C3,F.E3,F.G3],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:6},{ns:[F.C3,F.E3,F.G3],s:14,d:6}],
-     bass:[{n:F.C3,s:0,d:8},{n:F.F3*0.5,s:8,d:6},{n:F.C3,s:14,d:6}] },
-  // Indigo: Contemplative (D minor)
-  { bpm:70, mel:[
-    {n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3},{n:F.E4,d:1},
-    {n:F.D4,d:2},{n:F.F4,d:2},{n:F.G4,d:2},{n:F.A4,d:2},
-    {n:F.G4,d:4},
-  ], chords:[{ns:[F.D3,F.F3,F.A3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.D3,F.F3,F.A3],s:14,d:6}],
-     bass:[{n:F.D3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.D3,s:14,d:6}] },
-  // Blue: Serene (F major)
-  { bpm:63, mel:[
-    {n:F.C5,d:3},{n:F.A4,d:1},{n:F.F4,d:2},{n:F.G4,d:2},
-    {n:F.A4,d:3},{n:F.Bb4,d:1},{n:F.C5,d:2},{n:F.A4,d:2},
-    {n:F.F4,d:4},
-  ], chords:[{ns:[F.F3,F.A3,F.C4],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.F3,F.A3,F.C4],s:14,d:6}],
-     bass:[{n:F.F3*0.5,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.F3*0.5,s:14,d:6}] },
-  // Green: Uplifting (G major)
-  { bpm:76, mel:[
-    {n:F.D4,d:1},{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:2},
-    {n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},
-    {n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:1},{n:F.G4,d:4},
-  ], chords:[{ns:[F.G3,F.B3,F.D4],s:0,d:8},{ns:[F.D3,F.Fs4*0.5,F.A3],s:8,d:6},{ns:[F.G3,F.B3,F.D4],s:14,d:6}],
-     bass:[{n:F.G3*0.5,s:0,d:8},{n:F.D3,s:8,d:6},{n:F.G3*0.5,s:14,d:6}] },
-  // Yellow: Cheerful (C major, lively)
-  { bpm:88, mel:[
-    {n:F.G5,d:1},{n:F.E5,d:1},{n:F.C5,d:2},{n:F.D5,d:1},{n:F.E5,d:1},
-    {n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},
-    {n:F.E5,d:1},{n:F.G5,d:1},{n:F.C6,d:2},
-  ], chords:[{ns:[F.C4,F.E4,F.G4],s:0,d:6},{ns:[F.G3,F.B3,F.D4],s:6,d:4},{ns:[F.C4,F.E4,F.G4],s:10,d:6}],
-     bass:[{n:F.C3,s:0,d:6},{n:F.G3*0.5,s:6,d:4},{n:F.C3,s:10,d:6}] },
-  // Orange: Warm, adventurous (A major)
-  { bpm:80, mel:[
-    {n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.A4,d:2},
-    {n:F.B4,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},
-    {n:F.C5,d:2},{n:F.A4,d:2},
-  ], chords:[{ns:[F.A3,F.C4,F.E4],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:4},{ns:[F.A3,F.C4,F.E4],s:12,d:6}],
-     bass:[{n:F.A3*0.5,s:0,d:8},{n:F.F3*0.5,s:8,d:4},{n:F.A3*0.5,s:12,d:6}] },
-  // Red: Passionate (E minor)
-  { bpm:76, mel:[
-    {n:F.B4,d:2},{n:F.A4,d:1},{n:F.G4,d:1},{n:F.E4,d:2},{n:F.G4,d:2},
-    {n:F.A4,d:2},{n:F.B4,d:2},{n:F.C5,d:1},{n:F.B4,d:1},{n:F.A4,d:2},
-    {n:F.G4,d:1},{n:F.E4,d:1},{n:F.G4,d:2},
-  ], chords:[{ns:[F.E3,F.G3,F.B3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.E3,F.G3,F.B3],s:14,d:6}],
-     bass:[{n:F.E3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.E3,s:14,d:6}] },
+  { bpm:66, mel:[{n:F.C5,d:3},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.E4,d:2},{n:F.G4,d:3},{n:F.A4,d:1},{n:F.C5,d:2},{n:F.D5,d:2},{n:F.C5,d:4}],
+    chords:[{ns:[F.C3,F.E3,F.G3],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:6},{ns:[F.C3,F.E3,F.G3],s:14,d:6}],
+    bass:[{n:F.C3,s:0,d:8},{n:F.F3*0.5,s:8,d:6},{n:F.C3,s:14,d:6}] },
+  { bpm:70, mel:[{n:F.A4,d:2},{n:F.G4,d:2},{n:F.F4,d:3},{n:F.E4,d:1},{n:F.D4,d:2},{n:F.F4,d:2},{n:F.G4,d:2},{n:F.A4,d:2},{n:F.G4,d:4}],
+    chords:[{ns:[F.D3,F.F3,F.A3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.D3,F.F3,F.A3],s:14,d:6}],
+    bass:[{n:F.D3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.D3,s:14,d:6}] },
+  { bpm:63, mel:[{n:F.C5,d:3},{n:F.A4,d:1},{n:F.F4,d:2},{n:F.G4,d:2},{n:F.A4,d:3},{n:F.Bb4,d:1},{n:F.C5,d:2},{n:F.A4,d:2},{n:F.F4,d:4}],
+    chords:[{ns:[F.F3,F.A3,F.C4],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.F3,F.A3,F.C4],s:14,d:6}],
+    bass:[{n:F.F3*0.5,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.F3*0.5,s:14,d:6}] },
+  { bpm:76, mel:[{n:F.D4,d:1},{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:2},{n:F.D5,d:2},{n:F.C5,d:2},{n:F.B4,d:1},{n:F.A4,d:1},{n:F.G4,d:2},{n:F.A4,d:1},{n:F.B4,d:1},{n:F.G4,d:4}],
+    chords:[{ns:[F.G3,F.B3,F.D4],s:0,d:8},{ns:[F.D3,F.Fs4*0.5,F.A3],s:8,d:6},{ns:[F.G3,F.B3,F.D4],s:14,d:6}],
+    bass:[{n:F.G3*0.5,s:0,d:8},{n:F.D3,s:8,d:6},{n:F.G3*0.5,s:14,d:6}] },
+  { bpm:88, mel:[{n:F.G5,d:1},{n:F.E5,d:1},{n:F.C5,d:2},{n:F.D5,d:1},{n:F.E5,d:1},{n:F.F5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},{n:F.E5,d:1},{n:F.G5,d:1},{n:F.C6,d:2}],
+    chords:[{ns:[F.C4,F.E4,F.G4],s:0,d:6},{ns:[F.G3,F.B3,F.D4],s:6,d:4},{ns:[F.C4,F.E4,F.G4],s:10,d:6}],
+    bass:[{n:F.C3,s:0,d:6},{n:F.G3*0.5,s:6,d:4},{n:F.C3,s:10,d:6}] },
+  { bpm:80, mel:[{n:F.E5,d:2},{n:F.D5,d:1},{n:F.C5,d:1},{n:F.B4,d:2},{n:F.A4,d:2},{n:F.B4,d:1},{n:F.C5,d:1},{n:F.D5,d:2},{n:F.E5,d:1},{n:F.D5,d:1},{n:F.C5,d:2},{n:F.A4,d:2}],
+    chords:[{ns:[F.A3,F.C4,F.E4],s:0,d:8},{ns:[F.F3,F.A3,F.C4],s:8,d:4},{ns:[F.A3,F.C4,F.E4],s:12,d:6}],
+    bass:[{n:F.A3*0.5,s:0,d:8},{n:F.F3*0.5,s:8,d:4},{n:F.A3*0.5,s:12,d:6}] },
+  { bpm:76, mel:[{n:F.B4,d:2},{n:F.A4,d:1},{n:F.G4,d:1},{n:F.E4,d:2},{n:F.G4,d:2},{n:F.A4,d:2},{n:F.B4,d:2},{n:F.C5,d:1},{n:F.B4,d:1},{n:F.A4,d:2},{n:F.G4,d:1},{n:F.E4,d:1},{n:F.G4,d:2}],
+    chords:[{ns:[F.E3,F.G3,F.B3],s:0,d:8},{ns:[F.C3,F.E3,F.G3],s:8,d:6},{ns:[F.E3,F.G3,F.B3],s:14,d:6}],
+    bass:[{n:F.E3,s:0,d:8},{n:F.C3,s:8,d:6},{n:F.E3,s:14,d:6}] },
 ];
 
 function stopTune() {
@@ -860,10 +741,8 @@ function stopTune() {
   if (tuneStopTimer) { clearTimeout(tuneStopTimer); tuneStopTimer = null; }
   if (masterGain) {
     const ctx = getAudioCtx();
-    const oldMaster = masterGain;
-    const oldSources = activeSources;
-    masterGain = null;
-    activeSources = [];
+    const oldMaster = masterGain, oldSources = activeSources;
+    masterGain = null; activeSources = [];
     try {
       oldMaster.gain.setValueAtTime(oldMaster.gain.value, ctx.currentTime);
       oldMaster.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
@@ -875,19 +754,16 @@ function stopTune() {
   }
 }
 
-function playTune(colorIdx, durLevel) {
+function playTune(colorIdx) {
   stopTune();
-
   const ctx = getAudioCtx();
   const comp = compositions[colorIdx];
   const myGen = ++tuneGen;
   const tuneStart = Date.now();
 
-  masterGain = ctx.createGain();
-  masterGain.gain.value = 0.75;
+  masterGain = ctx.createGain(); masterGain.gain.value = 0.75;
   masterGain.connect(ctx.destination);
 
-  // Reverb via parallel delays
   const dl1 = ctx.createDelay(); dl1.delayTime.value = 0.12;
   const dl2 = ctx.createDelay(); dl2.delayTime.value = 0.24;
   const dl3 = ctx.createDelay(); dl3.delayTime.value = 0.37;
@@ -898,8 +774,7 @@ function playTune(colorIdx, durLevel) {
   dl2.connect(dg2); dg2.connect(masterGain);
   dl3.connect(dg3); dg3.connect(masterGain);
 
-  const reverbBus = ctx.createGain();
-  reverbBus.gain.value = 1;
+  const reverbBus = ctx.createGain(); reverbBus.gain.value = 1;
   reverbBus.connect(masterGain);
   reverbBus.connect(dl1); reverbBus.connect(dl2); reverbBus.connect(dl3);
 
@@ -910,41 +785,23 @@ function playTune(colorIdx, durLevel) {
 
   function playOnePhrase() {
     if (myGen !== tuneGen || !masterGain) return;
-    // Stop after 30 seconds
-    if (Date.now() - tuneStart >= 28000) {
-      stopTune();
-      return;
-    }
+    if (Date.now() - tuneStart >= 28000) { stopTune(); return; }
     const now = ctx.currentTime;
-
     let beatPos = 0;
     comp.mel.forEach(note => {
-      const t0 = now + beatPos * beatSec;
-      const dur = note.d * beatSec;
+      const t0 = now + beatPos * beatSec, dur = note.d * beatSec;
       if (note.n > 0) playNote(ctx, note.n, t0, dur * 0.92, reverbBus, 0.38);
       beatPos += note.d;
     });
-
-    comp.chords.forEach(ch => {
-      playPad(ctx, ch.ns, now + ch.s * beatSec, ch.d * beatSec, reverbBus);
-    });
-
-    comp.bass.forEach(b => {
-      playBass(ctx, b.n, now + b.s * beatSec, b.d * beatSec, reverbBus);
-    });
-
+    comp.chords.forEach(ch => playPad(ctx, ch.ns, now + ch.s * beatSec, ch.d * beatSec, reverbBus));
+    comp.bass.forEach(b => playBass(ctx, b.n, now + b.s * beatSec, b.d * beatSec, reverbBus));
     tuneInterval = setTimeout(playOnePhrase, (phraseLen + 0.8) * 1000);
   }
-
   playOnePhrase();
-
-  // Hard stop at 30s as safety net
-  tuneStopTimer = setTimeout(() => {
-    if (myGen === tuneGen) stopTune();
-  }, 30000);
+  tuneStopTimer = setTimeout(() => { if (myGen === tuneGen) stopTune(); }, 30000);
 }
 
-// Darker shade helper for 3D extrusion sides
+// ── Colour helpers ──
 function darkenHex(hex, factor) {
   const r = Math.round(parseInt(hex.slice(1,3),16) * factor);
   const g = Math.round(parseInt(hex.slice(3,5),16) * factor);
@@ -952,12 +809,13 @@ function darkenHex(hex, factor) {
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 function lightenHex(hex, factor) {
-  const r = Math.min(255, Math.round(parseInt(hex.slice(1,3),16) * factor + 255 * (factor - 1)));
-  const g = Math.min(255, Math.round(parseInt(hex.slice(3,5),16) * factor + 255 * (factor - 1)));
-  const b = Math.min(255, Math.round(parseInt(hex.slice(5,7),16) * factor + 255 * (factor - 1)));
+  const r = Math.min(255, Math.round(parseInt(hex.slice(1,3),16) * factor + 255 * (factor-1)));
+  const g = Math.min(255, Math.round(parseInt(hex.slice(3,5),16) * factor + 255 * (factor-1)));
+  const b = Math.min(255, Math.round(parseInt(hex.slice(5,7),16) * factor + 255 * (factor-1)));
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
+// ── Show Result Card ──
 function showQuote(colorIdx, durLevel, elapsedSec) {
   const personality = computePersonality(colorIdx, durLevel);
   const dom = personality.dominant;
@@ -965,94 +823,81 @@ function showQuote(colorIdx, durLevel, elapsedSec) {
   const card = document.getElementById('quoteCard');
   const qt = document.getElementById('quoteText');
 
-  // Map colorIdx * 3 + durLevel → unique event index (0..20)
   const eventIdx = colorIdx * 3 + durLevel;
   const evtPool = todayEvents.length > 0 ? todayEvents : fallbackEvents;
   const evt = evtPool[eventIdx % evtPool.length];
 
-  // Set card glow
   card.style.setProperty('--glow-color', color + '35');
-
-  // Set 3D text extrusion colors
   qt.style.setProperty('--text-front', color);
   qt.style.setProperty('--text-top', lightenHex(color, 1.4));
   qt.style.setProperty('--text-side-r', darkenHex(color, 0.35));
 
-  // Icon
   document.getElementById('quoteIcon').textContent = colorIcons[colorIdx];
 
-  // Quote aligned to dominant OCEAN trait
-  const quote = traitQuotes[dom.key][durLevel];
-  const fwFront = color;
-  const fwSide = darkenHex(color, 0.35);
-  const fwTop = lightenHex(color, 1.4);
-  const fwGlow = color + '80';
-
-  const words = quote.split(' ');
+  // Cheer text (aligned to dominant power, varied by durLevel)
+  const cheer = powerCheers[dom.key][durLevel];
+  const fwFront = color, fwSide = darkenHex(color, 0.35);
+  const fwTop = lightenHex(color, 1.4), fwGlow = color + '80';
+  const words = cheer.split(' ');
   const firstWord = words.shift();
-  const rest = words.join(' ');
-  const fwStyle = '--fw-front:' + fwFront +
-    ';--fw-side:' + fwSide +
-    ';--fw-top:' + fwTop +
-    ';--fw-glow:' + fwGlow;
+  const fwStyle = '--fw-front:' + fwFront + ';--fw-side:' + fwSide +
+    ';--fw-top:' + fwTop + ';--fw-glow:' + fwGlow;
+  qt.innerHTML = '“<span class="first-word" style="' + fwStyle + '">' +
+    firstWord + '</span> ' + words.join(' ') + '”';
 
-  qt.innerHTML =
-    '\u201c<span class="first-word" style="' + fwStyle + '">' + firstWord + '</span> ' + rest + '\u201d';
-
-  // Color + duration info chips
-  const durLabels = ['Quick tap', 'Moderate hold', 'Deep press'];
+  // Color + duration chips
   const sec = elapsedSec || '?';
   document.getElementById('colorDurInfo').innerHTML =
-    '<span class="info-chip"><span class="dot" style="background:' + color + '"></span>' + colorNames[colorIdx] + '</span>' +
-    '<span class="info-chip">\u23F1 ' + durLabels[durLevel] + ' (' + sec + 's)</span>';
+    '<span class="info-chip"><span class="dot" style="background:' + color + '"></span>' +
+    colorNames[colorIdx] + '</span>' +
+    '<span class="info-chip">&#9201; Held for ' + sec + 's!</span>';
 
-  // Personality trait characterization (tappable)
-  document.getElementById('personalityTrait').textContent = traitCharacterizations[dom.key];
+  // Power name + description
+  document.getElementById('powerName').textContent = powerNames[dom.key];
+  document.getElementById('powerName').style.color = powerColors[dom.key];
+  document.getElementById('personalityTrait').textContent = powerDescriptions[dom.key];
 
-  // Store personality for OCEAN popup
+  // Store for Power Meter popup
   window._lastOcean = personality;
 
-  // History event
+  // History fact
   document.getElementById('historyText').innerHTML =
-    '<span class="history-year">' + evt.y + '</span> \u2014 ' + evt.t;
+    '<span class="history-year">' + evt.y + '</span> — ' + evt.t;
 
-  // Play orchestral tune
-  playTune(colorIdx, durLevel);
-
+  playTune(colorIdx);
   document.getElementById('overlay').classList.add('show');
 }
 
+// ── Button handlers ──
 document.getElementById('btnClose').addEventListener('click', () => {
   stopTune();
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('oceanModal').classList.remove('show');
-  hint.textContent = 'Press & hold any color on the wheel!';
+  hint.textContent = 'Press & hold your favorite color!';
   idleSpin();
 });
 
-// ── OCEAN popup: tap personality trait to show bar chart ──
+// Tap power description → show Power Meter
 document.getElementById('personalityTrait').addEventListener('click', () => {
   const p = window._lastOcean;
   if (!p) return;
   const barsEl = document.getElementById('oceanBars');
-  const labels = { O: 'Openness', C: 'Conscientiousness', E: 'Extraversion', A: 'Agreeableness', S: 'Emotional Stability' };
   barsEl.innerHTML = '';
   p.sorted.forEach(item => {
     const pct = Math.round(item.value * 100);
     const row = document.createElement('div');
     row.className = 'ocean-row';
     row.innerHTML =
-      '<div class="ocean-lbl">' + labels[item.key] + '</div>' +
-      '<div class="ocean-track"><div class="ocean-fill" style="background:' + oceanColors[item.key] + ';width:0%"></div></div>' +
+      '<div class="ocean-lbl">' + powerMeterLabels[item.key] + '</div>' +
+      '<div class="ocean-track"><div class="ocean-fill" style="background:' +
+      powerColors[item.key] + ';width:0%"></div></div>' +
       '<div class="ocean-pct">' + pct + '%</div>';
     barsEl.appendChild(row);
   });
   document.getElementById('oceanModal').classList.add('show');
-  // Animate bars in
   setTimeout(() => {
     barsEl.querySelectorAll('.ocean-fill').forEach((fill, i) => {
-      const pct = Math.round(p.sorted[i].value * 100);
-      fill.style.width = pct + '%';
+      fill.style.width = Math.round(p.sorted[i].value * 100) + '%';
     });
   }, 50);
 });
@@ -1061,17 +906,14 @@ document.getElementById('oceanClose').addEventListener('click', () => {
   document.getElementById('oceanModal').classList.remove('show');
 });
 
-// Touch events
+// ── Touch / mouse events ──
 container.addEventListener('touchstart', onPressStart, { passive: true });
 container.addEventListener('touchend', onPressEnd);
 container.addEventListener('touchcancel', onPressEnd);
-
-// Mouse fallback
 container.addEventListener('mousedown', onPressStart);
 window.addEventListener('mouseup', onPressEnd);
 
-
-// ── Inline Service Worker for PWA ──
+// ── PWA Service Worker ──
 if ('serviceWorker' in navigator) {
   const swCode = `
     self.addEventListener('install', e => self.skipWaiting());
